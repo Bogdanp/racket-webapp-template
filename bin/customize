@@ -1,0 +1,78 @@
+#!/usr/bin/env racket
+#lang racket/base
+
+(require (for-syntax racket/base)
+         racket/file
+         racket/match
+         racket/runtime-path
+         racket/string)
+
+(define-runtime-path root
+  (build-path 'up))
+
+(define (prompt message #:default [default #f])
+  (define message-with-default
+    (if default
+        (format "~a [~a] " message default)
+        (format "~a " message)))
+
+  (display message-with-default)
+  (match (string-trim (read-line) #px"[\r\t\n ]" #:repeat? #t)
+    ["" default]
+    [input input]))
+
+(define (prompt/yn message)
+  (string=? "y" (prompt message #:default "n")))
+
+(module+ main
+  (file-stream-buffer-mode (current-output-port) 'line)
+  (displayln "This script will customize the template to your liking and then delete itself.")
+  (unless (prompt/yn "Do you want to continue?")
+    (exit 1))
+
+  (define application-name
+    (prompt "What would you like to call your application?"))
+
+  (define collection-name
+    (prompt "What collection name would you like to use?"
+            #:default application-name))
+
+  (define env-var-prefix
+    (string-replace (string-upcase collection-name) "-" "_"))
+
+  (rename-file-or-directory
+   (build-path root "app-name-here")
+   (build-path root collection-name))
+
+  (rename-file-or-directory
+   (build-path root "README.md.template")
+   (build-path root "README.md")
+   #t)
+
+  (delete-file
+   (build-path root "bin" "customize"))
+
+  (define all-files
+    (find-files
+     (lambda (p)
+       (not (or (directory-exists? p)
+                (string-contains? (path->string p) ".git")
+                (string-suffix? (path->string p) "customize")))) root))
+
+  (for ([path all-files])
+    (define contents (file->string path))
+    (define replaced-contents
+      (regexp-replace*
+       #px"AppNameHere|APP_NAME_HERE|app-name-here"
+       contents
+       (match-lambda
+         ["AppNameHere" application-name]
+         ["APP_NAME_HERE" env-var-prefix]
+         ["app-name-here" collection-name])))
+
+    (when (not (string=? contents replaced-contents))
+      (call-with-output-file path
+        #:mode 'text
+        #:exists 'truncate/replace
+        (lambda (out)
+          (write-string replaced-contents out))))))

@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+while ! racket app-name-here/main.rkt; do
+    sleep 0
+done

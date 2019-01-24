@@ -1,0 +1,25 @@
+# AppNameHere
+
+## Setup
+
+### Requirements
+
+* You need [Racket] since this is a Racket application.
+* You need [sass] to build the stylesheets.
+* You need [honcho] to run the local development server.  This means
+  you also need a relatively recent version of [Python].
+
+### Development environment
+
+Copy `.env.default` to `.env`.  [honcho] will automatically load the
+variables defined in this file into the environment of the
+subprocesses defined in the `Procfile` whenever it is run.
+
+## Running the app locally
+
+    honcho -f Procfile.dev
+
+
+[Python]: https://python.org/
+[Racket]: https://racket-lang.org/
+[sass]: https://sass-lang.com/

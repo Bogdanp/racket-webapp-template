@@ -1,0 +1,38 @@
+@import "./_colors.scss";
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: $cool-grey-9;
+  color: $cool-grey-0;
+  font-family: -apple-system, BlinkMacSystemFont, system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  font-size: 62.5%;
+  font-size: 1rem;
+  line-height: 1.4;
+}
+
+.container {
+  width: 960px;
+  margin: 0 auto;
+}
+
+.nav {
+  background: $white;
+  border-bottom: 1px solid $cool-grey-8;
+
+  &__items {
+    list-style-type: none;
+    display: flex;
+  }
+
+  &__item {
+    a {
+      display: block;
+      padding: 12px 16px 12px 0;
+    }
+  }
+}
