@@ -24,8 +24,8 @@
 (define (make-system)
   (define-system inner
     [app make-app]
-    [server (app) (make-server #:listen-ip config:listen-ip
-                               #:port config:port)])
+    [server (app) (make-server #:host config:http-host
+                               #:port config:http-port)])
 
   inner-system)
 

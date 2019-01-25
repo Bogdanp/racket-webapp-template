@@ -14,8 +14,8 @@
 (define log-level
   (string->symbol (getopt "LOG_LEVEL" "info")))
 
-(define listen-ip
-  (getopt "LISTEN_IP" "127.0.0.1"))
+(define http-host
+  (getopt "HTTP_HOST" "127.0.0.1"))
 
-(define port
+(define http-port
   (string->number (getopt "PORT" "8000")))

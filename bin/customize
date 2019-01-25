@@ -63,12 +63,13 @@
     (define contents (file->string path))
     (define replaced-contents
       (regexp-replace*
-       #px"AppNameHere|APP_NAME_HERE|app-name-here"
+       #px"AppNameHere|APP_NAME_HERE|app-name-here|app_name_here"
        contents
        (match-lambda
          ["AppNameHere" application-name]
          ["APP_NAME_HERE" env-var-prefix]
-         ["app-name-here" collection-name])))
+         ["app-name-here" collection-name]
+         ["app_name_here" (string-replace collection-name "-" "_")])))
 
     (when (not (string=? contents replaced-contents))
       (call-with-output-file path
