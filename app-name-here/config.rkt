@@ -1,21 +1,33 @@
 #lang racket/base
 
-(provide (all-defined-out))
+(require (for-syntax racket/base
+                     syntax/parse)
+         racket/string)
 
-(define (getopt name [default #f])
-  (or (getenv (string-append "APP_NAME_HERE_" (string-upcase name))) default))
+(define (symbol->option-name s)
+  (string-append "APP_NAME_HERE_" (string-replace (string-upcase (symbol->string s)) "-" "_")))
 
-(define debug
-  (equal? (getopt "DEBUG") "x"))
+(define-syntax (define-option stx)
+  (syntax-parse stx
+    [(_ {name:id})              #'(define-option {name #f})]
+    [(_ {name:id} e:expr ...+)  #'(define-option {name #f} e ...)]
+    [(_ {name:id default:expr}) #'(define-option {name default} name)]
 
-(define version
-  (getopt "VERSION" "dev"))
+    [(_ {name:id default:expr} e:expr ...+)
+     #'(begin
+         (define name
+           (let ([name (or (getenv (symbol->option-name 'name)) default)])
+             e ...))
 
-(define log-level
-  (string->symbol (getopt "LOG_LEVEL" "info")))
+         (provide name))]))
 
-(define http-host
-  (getopt "HTTP_HOST" "127.0.0.1"))
+(define-option {version "dev"})
+(define-option {debug}
+  (equal? debug "x"))
 
-(define http-port
-  (string->number (getopt "PORT" "8000")))
+(define-option {log-level "info"}
+  (string->symbol log-level))
+
+(define-option {http-host "127.0.0.1"})
+(define-option {http-port "8000"}
+  (string->number http-port))
