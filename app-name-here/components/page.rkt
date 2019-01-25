@@ -1,6 +1,6 @@
 #lang racket/base
 
-(require "templates.rkt")
+(require "template.rkt")
 
 (provide home-page
          not-found-page)

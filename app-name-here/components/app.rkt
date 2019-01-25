@@ -18,7 +18,7 @@
          web-server/servlet-dispatch
 
          "http.rkt"
-         "pages.rkt")
+         "page.rkt")
 
 (provide (contract-out
           [struct app ((dispatcher dispatcher/c))]
