@@ -5,6 +5,7 @@ A web application template for Racket.
 ## Features
 
 * Code reloading.
+* Database access.
 
 ## Getting Started
 

@@ -17,12 +17,13 @@
          web-server/http
          web-server/servlet-dispatch
 
+         "database.rkt"
          "http.rkt"
          "page.rkt")
 
 (provide (contract-out
           [struct app ((dispatcher dispatcher/c))]
-          [make-app (-> app?)]))
+          [make-app (-> database? app?)]))
 
 (define-runtime-path static-path
   (build-path 'up 'up "static"))
@@ -43,7 +44,7 @@
   [(define (component-start app) app)
    (define (component-stop app) app)])
 
-(define (make-app)
+(define (make-app db)
   (define-values (dispatch _)
     (dispatch-rules
      [("") home-page]

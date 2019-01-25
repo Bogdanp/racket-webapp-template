@@ -8,6 +8,9 @@
 * You need [sass] to build the stylesheets.
 * You need [honcho] to run the local development server.  This means
   you also need a relatively recent version of [Python].
+* You need access to a couple local [Postgres] databases.  One named
+  `app_name_here` and the other `app_name_here_tests`.  The latter is
+  exercised by unit tests.
 
 ### Development environment
 
@@ -20,6 +23,7 @@ subprocesses defined in the `Procfile` whenever it is run.
     honcho -f Procfile.dev
 
 
+[Postgres]: https://www.postgresql.org/
 [Python]: https://python.org/
 [Racket]: https://racket-lang.org/
 [sass]: https://sass-lang.com/

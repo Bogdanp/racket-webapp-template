@@ -31,3 +31,10 @@
 (define-option {http-host "127.0.0.1"})
 (define-option {http-port "8000"}
   (string->number http-port))
+
+(define-option {db-name "app_name_here"})
+(define-option {db-username "app_name_here"})
+(define-option {db-password "app_name_here"})
+(define-option {db-host "app_name_here"})
+(define-option {db-port "5432"}
+  (string->number db-port))

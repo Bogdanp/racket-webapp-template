@@ -3,6 +3,7 @@
 (require component
          racket/runtime-path
          "components/app.rkt"
+         "components/database.rkt"
          "components/server.rkt"
          (prefix-in config: "config.rkt"))
 
@@ -23,7 +24,12 @@
 ;; make-app or make-server).
 (define (make-system)
   (define-system inner
-    [app make-app]
+    [app (db) make-app]
+    [db (make-database #:database config:db-name
+                       #:username config:db-username
+                       #:password config:db-password
+                       #:host config:db-host
+                       #:port config:db-port)]
     [server (app) (make-server #:host config:http-host
                                #:port config:http-port)])
 
