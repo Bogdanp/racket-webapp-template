@@ -19,11 +19,12 @@
 
          "database.rkt"
          "http.rkt"
-         "page.rkt")
+         "page.rkt"
+         "user.rkt")
 
 (provide (contract-out
           [struct app ((dispatcher dispatcher/c))]
-          [make-app (-> database? app?)]))
+          [make-app (-> database? user-manager? app?)]))
 
 (define-runtime-path static-path
   (build-path 'up 'up "static"))
@@ -44,7 +45,7 @@
   [(define (component-start app) app)
    (define (component-stop app) app)])
 
-(define (make-app db)
+(define (make-app db users)
   (define-values (dispatch _)
     (dispatch-rules
      [("") home-page]

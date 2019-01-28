@@ -5,6 +5,7 @@
                      syntax/parse)
          component
          db
+         gregor
          racket/class
          racket/contract)
 
@@ -27,7 +28,9 @@
                                                           'read-committed
                                                           'read-uncommitted
                                                           false/c))
-                                       any/c)])
+                                       any/c)]
+  [->sql-date (-> time-provider? sql-date?)]
+  [->sql-timestamp (-> time-provider? sql-timestamp?)])
 
  with-database-connection
  with-database-transaction)
@@ -98,6 +101,19 @@
          #:isolation isolation
          (lambda (name)
            e ...))]))
+
+(define (->sql-date m)
+  (sql-date (->year m) (->month m) (->day m)))
+
+(define (->sql-timestamp m)
+  (sql-timestamp (->year m)
+                 (->month m)
+                 (->day m)
+                 (->hours m)
+                 (->minutes m)
+                 (->seconds m)
+                 (->nanoseconds m)
+                 #f))
 
 (module+ test
   (require rackunit)

@@ -5,6 +5,7 @@
          "components/app.rkt"
          "components/database.rkt"
          "components/server.rkt"
+         "components/user.rkt"
          (prefix-in config: "config.rkt"))
 
 (provide start stop reload!)
@@ -24,14 +25,15 @@
 ;; make-app or make-server).
 (define (make-system)
   (define-system inner
-    [app (db) make-app]
+    [app (db users) make-app]
     [db (make-database #:database config:db-name
                        #:username config:db-username
                        #:password config:db-password
                        #:host config:db-host
                        #:port config:db-port)]
     [server (app) (make-server #:host config:http-host
-                               #:port config:http-port)])
+                               #:port config:http-port)]
+    [users (db) user-manager])
 
   inner-system)
 
