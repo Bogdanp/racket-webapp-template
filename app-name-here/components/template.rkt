@@ -7,9 +7,10 @@
          racket/format
          racket/runtime-path
          web-server/http
-         (prefix-in config: "../config.rkt"))
+         (prefix-in config: "../config.rkt")
+         "preload.rkt")
 
-(provide container page)
+(provide container static-uri page)
 
 (define-syntax known-static-files
   (let* ([current-dir (build-path (syntax-source #'here) 'up)]
@@ -25,7 +26,9 @@
                      (syntax-local-value #'known-static-files))
        (raise-syntax-error 'static-uri (format "static file ~v not found" (syntax->datum #'path))))
 
-     #'(format "/static/~a?rev=~a" path config:version)]))
+     #'(let ([p (format "/static/~a?rev=~a" path config:version)])
+         (current-preload-dependencies (cons p (current-preload-dependencies)))
+         p)]))
 
 (define-syntax (xexpr-when stx)
   (syntax-parse stx
@@ -47,21 +50,31 @@
     ((class "nav__item"))
     (a ((href ,uri)) ,label)))
 
-(define (page #:subtitle [subtitle #f]
-              #:show-nav? [show-nav? #t]
-              . content)
+(define (render-page #:subtitle [subtitle #f]
+                     #:show-nav? [show-nav? #t]
+                     . content)
+  (define page
+    `(html
+      (head
+       (title
+        ,(if subtitle
+             (~a subtitle " &mdash; AppNameHere")
+             "AppNameHere"))
+       (link ((rel "stylesheet") (href ,(static-uri "css/screen.css")))))
+      (body
+       ,@(xexpr-when show-nav?
+           (nav (nav-item "/" "Home")
+                (nav-item "/login" "Log in")
+                (nav-item "/signup" "Sign up")))
+       ,@content)))
+
   (response/xexpr
    #:preamble #"<!doctype html>"
-   `(html
-     (head
-      (title
-       ,(if subtitle
-            (~a subtitle " &mdash; AppNameHere")
-            "AppNameHere"))
-      (link ((rel "stylesheet") (href ,(static-uri "css/screen.css")))))
-     (body
-      ,@(xexpr-when show-nav?
-          (nav (nav-item "/" "Home")
-               (nav-item "/login" "Log in")
-               (nav-item "/signup" "Sign up")))
-      ,@content))))
+   #:headers (make-preload-headers)
+   page))
+
+(define-syntax (page stx)
+  (syntax-parse stx
+    ([_ e ...+]
+     #'(parameterize ([current-preload-dependencies null])
+         (render-page e ...)))))
