@@ -1,15 +1,14 @@
 #lang racket/base
 
-(require racket/runtime-path)
-
-(define-runtime-path here ".")
-
 (module+ main
   (require racket/rerequire
+           racket/runtime-path
            racket/string
            (prefix-in config: "config.rkt")
            "logging.rkt"
            "reloader.rkt")
+
+  (define-runtime-path here ".")
 
   (define dynamic-module-path
     (build-path here "dynamic.rkt"))
