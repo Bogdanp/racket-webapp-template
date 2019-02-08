@@ -32,9 +32,19 @@
 (define-option {http-port "8000"}
   (string->number http-port))
 
+(define-option {url-scheme "http"})
+(define-option {url-host "127.0.0.1"})
+(define-option {url-port "8000"})
+
 (define-option {db-name "app_name_here"})
 (define-option {db-username "app_name_here"})
 (define-option {db-password "app_name_here"})
-(define-option {db-host "app_name_here"})
+(define-option {db-host "127.0.0.1"})
 (define-option {db-port "5432"}
   (string->number db-port))
+
+(define-option {secret-key "supercalifragilisticexpialidocious"}
+  (string->bytes/utf-8 secret-key))
+
+(define-option {email-postmark-token #f})
+(define-option {email-sender "bot@example.com"})

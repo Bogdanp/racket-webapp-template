@@ -17,6 +17,7 @@
      (current-logger)
      config:log-level 'app
      config:log-level 'server
+     config:log-level 'mail-adapter
      config:log-level 'system
      config:log-level 'reloader))
 

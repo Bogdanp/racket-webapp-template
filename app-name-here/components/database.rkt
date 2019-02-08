@@ -7,7 +7,8 @@
          db
          gregor
          racket/class
-         racket/contract)
+         racket/contract
+         racket/match)
 
 (provide
  (contract-out
@@ -29,6 +30,7 @@
                                                           'read-uncommitted
                                                           false/c))
                                        any/c)]
+  [exn:fail:sql:constraint-violation? (-> any/c boolean?)]
   [->sql-date (-> time-provider? sql-date?)]
   [->sql-timestamp (-> time-provider? sql-timestamp?)])
 
@@ -101,6 +103,11 @@
          #:isolation isolation
          (lambda (name)
            e ...))]))
+
+(define exn:fail:sql:constraint-violation?
+  (match-lambda
+    [(exn:fail:sql _ _ "23505" _) #t]
+    [_ #f]))
 
 (define (->sql-date m)
   (sql-date (->year m) (->month m) (->day m)))

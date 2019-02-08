@@ -1,12 +1,16 @@
 #lang racket/base
 
-(require component
+(require (for-syntax racket/base
+                     syntax/parse)
+         component
          crypto
          crypto/argon2
          db
          gregor
          openssl/md5
          racket/contract
+         racket/function
+         racket/match
          racket/port
          racket/random
          racket/string
@@ -15,10 +19,10 @@
          threading
          "database.rkt")
 
-
 ;; user ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(provide user?)
+(provide
+ (struct-out user))
 
 ;; https://password-hashing.net/argon2-specs.pdf
 (define ARGON2-CONFIG
@@ -31,7 +35,7 @@
   ([id (or/c false/c exact-positive-integer?)]
    [username non-empty-string? string-downcase]
    [(password-hash #f) (or/c false/c non-empty-string?)]
-   [(verified #f) boolean?]
+   [(verified? #f) boolean?]
    [(verification-code (generate-verification-code)) non-empty-string?]
    [(created-at (now)) moment?]
    [(updated-at (now)) moment?])
@@ -55,45 +59,79 @@
 ;; user-manager ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (provide
+ exn:fail:user-manager?
+ exn:fail:user-manager:username-taken?
+
  user-manager
  user-manager?
+ user-manager-lookup/id
+ user-manager-lookup/username
  user-manager-create-user
- user-manager-login)
+ user-manager-login
+ user-manager-verify)
+
+(struct exn:fail:user-manager exn:fail ())
+(struct exn:fail:user-manager:username-taken exn:fail:user-manager ())
 
 (struct++ user-manager ([db connection?])
   #:transparent
   #:methods gen:component
-  [(define (component-start a-user-manager) a-user-manager)
-   (define (component-stop a-user-manager) a-user-manager)])
+  [(define component-start identity)
+   (define component-stop identity)])
 
 (define/contract (user-manager-create-user um username password)
   (-> user-manager? string? string? user?)
   (define user (set-user-password (user++ #:id #f #:username username) password))
   (define id
-    (with-database-transaction [conn (user-manager-db um)]
-      (query-exec conn (insert #:into users
-                               #:set
-                               [username ,(user-username user)]
-                               [password_hash ,(user-password-hash user)]
-                               [verification_code ,(user-verification-code user)]
-                               [created_at ,(->sql-timestamp (user-created-at user))]
-                               [updated_at ,(->sql-timestamp (user-updated-at user))]))
-      (query-value conn (select (lastval)))))
+    (with-handlers ([exn:fail:sql:constraint-violation?
+                     (lambda _
+                       (raise (exn:fail:user-manager:username-taken
+                               (format "username '~a' is taken" username)
+                               (current-continuation-marks))))])
+      (with-database-transaction [conn (user-manager-db um)]
+        (query-exec conn (insert #:into users
+                                 #:set
+                                 [username ,(user-username user)]
+                                 [password_hash ,(user-password-hash user)]
+                                 [verification_code ,(user-verification-code user)]
+                                 [created_at ,(->sql-timestamp (user-created-at user))]
+                                 [updated_at ,(->sql-timestamp (user-updated-at user))]))
+        (query-value conn (select (lastval))))))
 
   (set-user-id user id))
 
+(define-syntax (user-manager-lookup stx)
+  (syntax-parse stx
+    [(_ user-manager where-clause)
+     #'(let ([row (with-database-transaction [conn (user-manager-db user-manager)]
+                    (query-maybe-row conn (select id username password_hash
+                                                  verified verification_code
+                                                  created_at updated_at
+                                                  #:from users
+                                                  #:where where-clause)))])
+         (and row (apply user (vector->list row))))]))
+
+(define/contract (user-manager-lookup/id um id)
+  (-> user-manager? exact-positive-integer? (or/c false/c user?))
+  (user-manager-lookup um (= id ,id)))
+
+(define/contract (user-manager-lookup/username um username)
+  (-> user-manager? string? (or/c false/c user?))
+  (user-manager-lookup um (= username ,username)))
+
 (define/contract (user-manager-login um username password)
   (-> user-manager? string? string? (or/c false/c user?))
-  (define row
-    (with-database-transaction [conn (user-manager-db um)]
-      (query-maybe-row conn (select id username password_hash
-                                    verified verification_code
-                                    created_at updated_at
-                                    #:from users
-                                    #:where (= username ,username)))))
+  (define user (user-manager-lookup/username um username))
+  (and user (user-password-valid? user password) user))
 
-  (define u (and row (apply user (vector->list row))))
-  (and u (user-password-valid? u password) u))
+(define/contract (user-manager-verify um id verification-code)
+  (-> user-manager? exact-positive-integer? string? void?)
+  (void
+   (with-database-transaction [conn (user-manager-db um)]
+     (query-exec conn (update users
+                              #:set [verified ,#t]
+                              #:where (and (= id ,id)
+                                           (= verification_code ,verification-code)))))))
 
 
 (module+ test
@@ -119,16 +157,22 @@
     (lambda _
       (system-stop test-system))
 
-    (test-case "creates users"
-      (check-match
-       (user-manager-create-user (system-get test-system 'user-manager) "bogdan" "hunter2")
-       (user (? exact-positive-integer?) "bogdan" _ #f _ _ _)))
+    (test-suite
+     "user-manager-create-user"
 
-    (test-case "returns #f when given invalid login data"
-      (check-false (user-manager-login (system-get test-system 'user-manager) "invalid" "invalid"))
-      (check-false (user-manager-login (system-get test-system 'user-manager) "bogdan" "invalid")))
+     (test-case "creates users"
+       (check-match
+        (user-manager-create-user (system-get test-system 'user-manager) "bogdan" "hunter2")
+        (user (? exact-positive-integer?) "bogdan" _ #f _ _ _))))
 
-    (test-case "returns a user upon successful login"
-      (check-match
-       (user-manager-login (system-get test-system 'user-manager) "bogdan" "hunter2")
-       (user (? exact-positive-integer?) "bogdan" _ _ _ _ _))))))
+    (test-suite
+     "user-manager-login"
+
+     (test-case "returns #f when given invalid login data"
+       (check-false (user-manager-login (system-get test-system 'user-manager) "invalid" "invalid"))
+       (check-false (user-manager-login (system-get test-system 'user-manager) "bogdan" "invalid")))
+
+     (test-case "returns a user upon successful login"
+       (check-match
+        (user-manager-login (system-get test-system 'user-manager) "bogdan" "hunter2")
+        (user (? exact-positive-integer?) "bogdan" _ _ _ _ _)))))))

@@ -8,6 +8,7 @@
          racket/path
          racket/runtime-path
          racket/string
+         threading
          web-server/dispatch
          web-server/dispatchers/dispatch
          (prefix-in files: web-server/dispatchers/dispatch-files)
@@ -17,14 +18,19 @@
          web-server/http
          web-server/servlet-dispatch
 
+         "auth.rkt"
          "database.rkt"
          "http.rkt"
-         "page.rkt"
+         "mail.rkt"
+         "page/auth.rkt"
+         "page/common.rkt"
+         "page/dashboard.rkt"
          "user.rkt")
 
-(provide (contract-out
-          [struct app ((dispatcher dispatcher/c))]
-          [make-app (-> database? user-manager? app?)]))
+(provide
+ (contract-out
+  [struct app ([dispatcher dispatcher/c])]
+  [make-app (-> auth-manager? database? mailer? user-manager? app?)]))
 
 (define-runtime-path static-path
   (build-path 'up 'up "static"))
@@ -42,15 +48,25 @@
 
 (struct app (dispatcher)
   #:methods gen:component
-  [(define (component-start app) app)
-   (define (component-stop app) app)])
+  [(define component-start identity)
+   (define component-stop identity)])
 
-(define (make-app db users)
-  (define-values (dispatch _)
+(define (make-app auth db mailer users)
+  (define-values (dispatch-main reverse-main-uri)
     (dispatch-rules
-     [("") home-page]
-     [else not-found-page]))
+     [("") dashboard-page]))
+
+  (define-values (dispatch-auth reverse-auth-uri)
+    (dispatch-rules
+     [("login") (login-page auth)]
+     [("logout") (logout-page auth)]
+     [("signup") (signup-page auth mailer users)]
+     [("verify" (integer-arg) (string-arg)) (verify-page users)]))
 
   (app (sequencer:make
         (filter:make #rx"^/static/.+$" static-dispatcher)
-        (dispatch/servlet dispatch))))
+        (dispatch/servlet dispatch-auth)
+        (dispatch/servlet
+         (~> dispatch-main
+             ((with-auth-required users))))
+        (dispatch/servlet not-found-page))))

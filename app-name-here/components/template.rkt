@@ -8,9 +8,10 @@
          racket/runtime-path
          web-server/http
          (prefix-in config: "../config.rkt")
+         "auth.rkt"
          "preload.rkt")
 
-(provide container static-uri page)
+(provide container static-uri page xexpr-when)
 
 (define-syntax known-static-files
   (let* ([current-dir (build-path (syntax-source #'here) 'up)]
@@ -58,14 +59,17 @@
       (head
        (title
         ,(if subtitle
-             (~a subtitle " &mdash; AppNameHere")
+             (~a subtitle " - AppNameHere")
              "AppNameHere"))
        (link ((rel "stylesheet") (href ,(static-uri "css/screen.css")))))
       (body
        ,@(xexpr-when show-nav?
-           (nav (nav-item "/" "Home")
-                (nav-item "/login" "Log in")
-                (nav-item "/signup" "Sign up")))
+           (if (current-user)
+               (nav (nav-item "/" "Home")
+                    (nav-item "/logout" "Log out"))
+               (nav (nav-item "/" "Home")
+                    (nav-item "/login" "Log in")
+                    (nav-item "/signup" "Sign up"))))
        ,@content)))
 
   (response/xexpr

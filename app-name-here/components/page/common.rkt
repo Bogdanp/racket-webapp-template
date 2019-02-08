@@ -1,13 +1,12 @@
 #lang racket/base
 
-(require "template.rkt")
+(require racket/contract/base
+         web-server/http
+         "../template.rkt")
 
-(provide home-page
-         not-found-page)
-
-(define (home-page req)
-  (page
-   (container `(h1 "Hi"))))
+(provide
+ (contract-out
+  [not-found-page (-> request? response?)]))
 
 (define (not-found-page req)
   (page

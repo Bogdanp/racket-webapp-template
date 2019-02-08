@@ -7,6 +7,7 @@
                "db-lib"
                "gregor-lib"
                "north"
+               "postmark-client"
                "sql"
                "struct-plus-plus"
                "threading-lib"
