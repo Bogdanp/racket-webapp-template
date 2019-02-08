@@ -61,17 +61,24 @@
    (lambda (embed/url)
      (match (form-run login-form req)
        [(list 'passed (list username password) render-widget)
-        (define cookie (auth-manager-login auth username password))
-        (cond
-          [cookie
-           (redirect-to "/" #:headers (list (cookie->header cookie)))]
+        (with-handlers ([exn:fail:auth-manager:unverified?
+                         (lambda _
+                           (page
+                            #:subtitle "Log in"
+                            (container
+                             (render-login-form (embed/url (login-page auth)) render-widget
+                                                #:error-message "Please verify your e-mail!"))))])
+          (cond
+            [(auth-manager-login auth username password)
+             => (lambda (cookie)
+                  (redirect-to "/" #:headers (list (cookie->header cookie))))]
 
-          [else
-           (page
-            #:subtitle "Log in"
-            (container
-             (render-login-form (embed/url (login-page auth)) render-widget
-                                #:error-message "Invalid username or password.")))])]
+            [else
+             (page
+              #:subtitle "Log in"
+              (container
+               (render-login-form (embed/url (login-page auth)) render-widget
+                                  #:error-message "Invalid username or password.")))]))]
 
        [(list _ _ render-widget)
         (page

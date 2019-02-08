@@ -16,8 +16,8 @@
 
 (provide
  (contract-out
-  [exn:fail:auth? (-> any/c boolean?)]
-  [exn:fail:auth:unverified? (-> any/c boolean?)]
+  [exn:fail:auth-manager? (-> any/c boolean?)]
+  [exn:fail:auth-manager:unverified? (-> any/c boolean?)]
   [current-user (case->
                  (-> user? void?)
                  (-> (or/c false/c user?)))]
@@ -30,8 +30,8 @@
 
 (define current-user (make-parameter #f))
 
-(struct exn:fail:auth exn:fail ())
-(struct exn:fail:auth:unverified exn:fail:auth ())
+(struct exn:fail:auth-manager exn:fail ())
+(struct exn:fail:auth-manager:unverified exn:fail:auth-manager ())
 
 (struct auth-manager (user-manager)
   #:methods gen:component
@@ -43,7 +43,7 @@
     [#f #f]
     [(user id _ _ verified? _ _ _)
      (unless verified?
-       (raise (exn:fail:auth:unverified "this user is not verified" (current-continuation-marks))))
+       (raise (exn:fail:auth-manager:unverified "this user is not verified" (current-continuation-marks))))
 
      (~> (number->string id)
          (make-id-cookie id-cookie-name _ #:key config:secret-key))]))
@@ -105,6 +105,6 @@
 
      (test-case "fails if the user is not verified"
        (check-exn
-        exn:fail:auth:unverified?
+        exn:fail:auth-manager:unverified?
         (lambda _
           (auth-manager-login (system-get test-system 'auth) "bogdan" "hunter2"))))))))
