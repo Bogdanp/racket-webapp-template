@@ -69,9 +69,9 @@
 
   (define-system test
     [auth (users) auth-manager]
-    [db (make-database #:database "app_name_here_tests"
-                       #:username "app_name_here"
-                       #:password "app_name_here")]
+    [db (make-database #:database config:test-db-name
+                       #:username config:test-db-username
+                       #:password config:test-db-password)]
     [users (db) user-manager])
 
   (run-tests

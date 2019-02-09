@@ -123,13 +123,14 @@
                  #f))
 
 (module+ test
-  (require rackunit)
+  (require rackunit
+           (prefix-in config: "../config.rkt"))
 
   (define db
     (component-start
-     ((make-database #:database "app_name_here_tests"
-                     #:username "app_name_here"
-                     #:password "app_name_here"))))
+     ((make-database #:database config:test-db-name
+                     #:username config:test-db-username
+                     #:password config:test-db-password))))
 
   (check-eq?
    (with-database-connection [conn db]

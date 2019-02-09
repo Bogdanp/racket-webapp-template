@@ -43,6 +43,13 @@
 (define-option {db-port "5432"}
   (string->number db-port))
 
+(define-option {test-db-name "app_name_here_tests"})
+(define-option {test-db-username "app_name_here"})
+(define-option {test-db-password "app_name_here"})
+(define-option {test-db-host "127.0.0.1"})
+(define-option {test-db-port "5432"}
+  (string->number test-db-port))
+
 (define-option {secret-key "supercalifragilisticexpialidocious"}
   (string->bytes/utf-8 secret-key))
 

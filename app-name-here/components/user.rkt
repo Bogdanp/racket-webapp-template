@@ -136,12 +136,13 @@
 
 (module+ test
   (require rackunit
-           rackunit/text-ui)
+           rackunit/text-ui
+           (prefix-in config: "../config.rkt"))
 
   (define-system test
-    [db (make-database #:database "app_name_here_tests"
-                       #:username "app_name_here"
-                       #:password "app_name_here")]
+    [db (make-database #:database config:test-db-name
+                       #:username config:test-db-username
+                       #:password config:test-db-password)]
     [user-manager (db) user-manager])
 
   (run-tests
