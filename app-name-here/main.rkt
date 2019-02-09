@@ -2,6 +2,8 @@
 
 (module+ main
   (require racket/rerequire
+           racket/file
+           racket/function
            racket/runtime-path
            racket/string
            (prefix-in config: "config.rkt")
@@ -11,7 +13,7 @@
   (define-runtime-path here ".")
 
   (define dynamic-module-path
-    (build-path here "dynamic.rkt"))
+    (simplify-path (build-path here "dynamic.rkt")))
 
   (when config:debug
     (void (dynamic-rerequire dynamic-module-path)))
@@ -34,10 +36,13 @@
                                      (exit 7))])
                     (stop)
                     (when (string-suffix? (path->string changed-path) ".rkt")
-                      (dynamic-rerequire dynamic-module-path #:verbosity 'none)
+                      ;; Find and update the mtimes of all dependent
+                      ;; modules of the changed module to avoid
+                      ;; problems between struct generations.
+                      (touch-dependents dynamic-module-path changed-path)
+                      (dynamic-rerequire dynamic-module-path)
                       (set! start (dynamic-require dynamic-module-path 'start))
-                      (set! stop (dynamic-require dynamic-module-path 'stop))
-                      ((dynamic-require dynamic-module-path 'reload!)))
+                      (set! stop (dynamic-require dynamic-module-path 'stop)))
                     (start))))))
 
   (with-handlers ([exn:break? (lambda (e)
