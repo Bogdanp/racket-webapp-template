@@ -18,9 +18,7 @@
  (contract-out
   [exn:fail:auth-manager? (-> any/c boolean?)]
   [exn:fail:auth-manager:unverified? (-> any/c boolean?)]
-  [current-user (case->
-                 (-> user? void?)
-                 (-> (or/c false/c user?)))]
+  [current-user (parameter/c (or/c false/c user?))]
   [struct auth-manager ([user-manager user-manager?])]
   [auth-manager-login (-> auth-manager? string? string? (or/c false/c cookie?))]
   [auth-manager-logout (-> auth-manager? cookie?)]

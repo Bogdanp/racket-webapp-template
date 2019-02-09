@@ -21,6 +21,7 @@
          "auth.rkt"
          "database.rkt"
          "http.rkt"
+         "l10n.rkt"
          "mail.rkt"
          "page/auth.rkt"
          "page/common.rkt"
@@ -65,8 +66,11 @@
 
   (app (sequencer:make
         (filter:make #rx"^/static/.+$" static-dispatcher)
-        (dispatch/servlet dispatch-auth)
+        (dispatch/servlet
+         (~> dispatch-auth
+             (with-browser-locale)))
         (dispatch/servlet
          (~> dispatch-main
-             ((with-auth-required users))))
+             ((with-auth-required users))
+             (with-browser-locale)))
         (dispatch/servlet not-found-page))))

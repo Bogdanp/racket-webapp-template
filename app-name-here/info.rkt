@@ -9,6 +9,7 @@
                "north"
                "postmark-client"
                "sql"
+               "srfi-lib"
                "struct-plus-plus"
                "threading-lib"
                "web-server-lib"))

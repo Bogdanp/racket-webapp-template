@@ -9,6 +9,7 @@
          web-server/http
          (prefix-in config: "../config.rkt")
          "auth.rkt"
+         "l10n.rkt"
          "preload.rkt")
 
 (provide container static-uri page xexpr-when)
@@ -65,11 +66,11 @@
       (body
        ,@(xexpr-when show-nav?
            (if (current-user)
-               (nav (nav-item "/" "Home")
-                    (nav-item "/logout" "Log out"))
-               (nav (nav-item "/" "Home")
-                    (nav-item "/login" "Log in")
-                    (nav-item "/signup" "Sign up"))))
+               (nav (nav-item "/" (translate 'nav-dashboard))
+                    (nav-item "/logout" (translate 'nav-log-out)))
+               (nav (nav-item "/" (translate 'nav-dashboard))
+                    (nav-item "/login" (translate 'nav-log-in))
+                    (nav-item "/signup" (translate 'nav-sign-up)))))
        ,@content)))
 
   (response/xexpr

@@ -6,6 +6,7 @@
          web-server/servlet
 
          "../auth.rkt"
+         "../l10n.rkt"
          "../mail.rkt"
          "../user.rkt"
          "../template.rkt")
@@ -34,9 +35,9 @@
 
 (define (render-login-form target render-widget [error-message #f])
   (define render-username-field
-    (make-labeled-field "Username" "username" (widget-email #:attributes '((placeholder "bruce@waye.co")))))
+    (make-labeled-field (translate 'label-username) "username" (widget-email #:attributes '((placeholder "bruce@waye.co")))))
   (define render-password-field
-    (make-labeled-field "Password" "password" (widget-password #:attributes '((placeholder "••••••••••••••••")))))
+    (make-labeled-field (translate 'label-password) "password" (widget-password #:attributes '((placeholder "••••••••••••••••")))))
 
   `(form
     ((action ,target)
@@ -52,11 +53,12 @@
     ,(render-password-field render-widget)
 
     (button ((class "button button--primary")
-             (type "submit")) "Log in")
+             (type "submit"))
+            ,(translate 'action-log-in))
 
     (a ((class "button button--secondary")
         (href "/signup"))
-       "Don't have an account? Sign up!")))
+       ,(translate 'action-sign-up-no-account))))
 
 (define ((login-page auth) req)
   (send/suspend/dispatch
@@ -71,14 +73,14 @@
        [(list 'passed (list username password) render-widget)
         (with-handlers ([exn:fail:auth-manager:unverified?
                          (lambda _
-                           (render render-widget "Please verify your e-mail!"))])
+                           (render render-widget (translate 'error-verify-email)))])
           (cond
             [(auth-manager-login auth username password)
              => (lambda (cookie)
                   (redirect-to "/" #:headers (list (cookie->header cookie))))]
 
             [else
-             (render render-widget "Invalid username or password.")]))]
+             (render render-widget (translate 'error-invalid-credentials))]))]
 
        [(list _ _ render-widget)
         (render render-widget)]))))
@@ -96,9 +98,9 @@
 
 (define (render-signup-form target render-widget [error-message #f])
   (define render-username-field
-    (make-labeled-field "Username" "username" (widget-email #:attributes '((placeholder "bruce@waye.co")))))
+    (make-labeled-field (translate 'label-username) "username" (widget-email #:attributes '((placeholder "bruce@waye.co")))))
   (define render-password-field
-    (make-labeled-field "Password" "password" (widget-password #:attributes '((placeholder "••••••••••••••••")))))
+    (make-labeled-field (translate 'label-password) "password" (widget-password #:attributes '((placeholder "••••••••••••••••")))))
 
   `(form
     ((action ,target)
@@ -114,11 +116,12 @@
     ,(render-password-field render-widget)
 
     (button ((class "button button--primary")
-             (type "submit")) "Sign up")
+             (type "submit"))
+            ,(translate 'action-sign-up))
 
     (a ((class "button button--secondary")
         (href "/login"))
-       "Already have an account? Log in!")))
+       ,(translate 'action-log-in-signed-up))))
 
 (define ((signup-page auth mailer users) req)
   (send/suspend/dispatch
@@ -133,7 +136,7 @@
        [(list 'passed (list username password) render-widget)
         (with-handlers ([exn:fail:user-manager:username-taken?
                          (lambda _
-                           (render render-widget "This username is taken."))])
+                           (render render-widget (translate 'error-username-taken)))])
           (define user (user-manager-create-user users username password))
           (mailer-send-welcome-email mailer user)
           (post-signup-page (redirect/get/forget)))]
