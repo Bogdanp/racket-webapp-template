@@ -12,7 +12,7 @@
 (provide
  (contract-out
   [translate (->* (symbol?) #:rest (listof string?) string?)]
-  [with-browser-locale (-> (-> request? response?) (-> request? response?))]))
+  [wrap-browser-locale (-> (-> request? response?) (-> request? response?))]))
 
 (define-runtime-path locales-path
   (build-path 'up 'up "resources" "locales"))
@@ -51,7 +51,7 @@
               #:when (member (car spec) locales))
     (car spec)))
 
-(define ((with-browser-locale handler) req)
+(define ((wrap-browser-locale handler) req)
   (define accept-language
     (bytes->string/utf-8
      (cond

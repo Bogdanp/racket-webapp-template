@@ -22,7 +22,7 @@
   [struct auth-manager ([user-manager user-manager?])]
   [auth-manager-login (-> auth-manager? string? string? (or/c false/c cookie?))]
   [auth-manager-logout (-> auth-manager? cookie?)]
-  [with-auth-required (-> user-manager? (-> (-> request? response?) (-> request? response?)))]))
+  [wrap-auth-required (-> user-manager? (-> (-> request? response?) (-> request? response?)))]))
 
 (define id-cookie-name "_uid")
 
@@ -49,7 +49,7 @@
 (define (auth-manager-logout am)
   (logout-id-cookie id-cookie-name))
 
-(define (((with-auth-required users) handler) req)
+(define (((wrap-auth-required users) handler) req)
   (define user
     (and~>> (request-id-cookie req #:name id-cookie-name #:key config:secret-key)
             (string->number)

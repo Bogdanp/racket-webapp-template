@@ -68,9 +68,9 @@
         (filter:make #rx"^/static/.+$" static-dispatcher)
         (dispatch/servlet
          (~> dispatch-auth
-             (with-browser-locale)))
+             (wrap-browser-locale)))
         (dispatch/servlet
          (~> dispatch-main
-             ((with-auth-required users))
-             (with-browser-locale)))
+             ((wrap-auth-required users))
+             (wrap-browser-locale)))
         (dispatch/servlet not-found-page))))
