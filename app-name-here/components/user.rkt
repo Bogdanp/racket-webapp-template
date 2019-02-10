@@ -22,7 +22,7 @@
 ;; user ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (provide
- (struct-out user))
+ (struct-out user) user++)
 
 ;; https://password-hashing.net/argon2-specs.pdf
 (define ARGON2-CONFIG

@@ -9,6 +9,7 @@
          "components/mail.rkt"
          "components/server.rkt"
          "components/user.rkt"
+         "components/url.rkt"
          (prefix-in config: "config.rkt"))
 
 (provide start stop)
@@ -20,13 +21,17 @@
   (system-stop prod-system))
 
 (define mail-adapter
-  (cond
-    [config:email-postmark-token
-     (postmark-mail-adapter
-      (postmark config:email-postmark-token))]
+  (if config:postmark-token
+      (postmark-mail-adapter (postmark config:postmark-token))
+      (make-stub-mail-adapter)))
 
-    [else
-     (stub-mail-adapter)]))
+(define common-mail-variables
+  (hasheq 'product_url     (make-application-url)
+          'product_name    config:product-name
+          'company_name    config:company-name
+          'company_address config:company-address
+          'sender_name     config:support-name
+          'support_email   config:support-email))
 
 (define-system prod
   [app (auth db mailer users) make-app]
@@ -37,7 +42,8 @@
                      #:host config:db-host
                      #:port config:db-port)]
   [mailer (make-mailer #:adapter mail-adapter
-                       #:sender config:email-sender)]
+                       #:sender config:support-email
+                       #:common-variables common-mail-variables)]
   [server (app) (make-server #:host config:http-host
                              #:port config:http-port)]
   [users (db) user-manager])

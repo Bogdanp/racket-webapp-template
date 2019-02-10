@@ -53,5 +53,10 @@
 (define-option {secret-key "supercalifragilisticexpialidocious"}
   (string->bytes/utf-8 secret-key))
 
-(define-option {email-postmark-token #f})
-(define-option {email-sender "bot@example.com"})
+(define-option {postmark-token #f})
+
+(define-option {product-name "AppNameHere"})
+(define-option {company-name "AppNameHere"})
+(define-option {company-address ""})
+(define-option {support-name "Bot Botterson"})
+(define-option {support-email "support@app-name-here.com"})

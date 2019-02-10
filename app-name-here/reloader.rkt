@@ -45,9 +45,9 @@
                         #:handler handler)
   (thread
    (lambda ()
-     (log-reloader-debug "starting reloader for path ~v" path)
+     (log-reloader-debug "starting reloader for path ~v" (path->string path))
      (watch path (lambda (changed-path)
-                   (log-reloader-debug "detected change in ~v" changed-path)
+                   (log-reloader-debug "detected change in ~v" (path->string changed-path))
                    (handler changed-path))))))
 
 (define (build-dependents-tree mod)
