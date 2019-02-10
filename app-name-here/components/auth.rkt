@@ -70,6 +70,7 @@
                        #:username config:test-db-username
                        #:password config:test-db-password)]
     [sessions (make-session-manager #:cookie-name config:session-cookie-name
+                                    #:shelf-life config:session-shelf-life
                                     #:secret-key config:session-secret-key
                                     #:store (make-memory-session-store))]
     [users (db) user-manager])

@@ -108,6 +108,7 @@
  (contract-out
   [session-manager? (-> any/c boolean?)]
   [make-session-manager (->* (#:cookie-name string?
+                              #:shelf-life exact-positive-integer?
                               #:secret-key bytes?
                               #:store session-store?)
                              (-> session-manager?))]
@@ -126,7 +127,7 @@
 (define current-session-id
   (make-parameter #f))
 
-(struct session-manager (cookie-name secret-key store)
+(struct session-manager (cookie-name shelf-life secret-key store)
   #:methods gen:component
   [(define (component-start sm)
      (begin0 sm
@@ -137,9 +138,10 @@
        (session-store-persist! (session-manager-store sm))))])
 
 (define ((make-session-manager #:cookie-name cookie-name
+                               #:shelf-life shelf-life
                                #:secret-key secret-key
                                #:store store))
-  (session-manager cookie-name secret-key store))
+  (session-manager cookie-name shelf-life secret-key store))
 
 (define session-manager-ref
   (case-lambda
@@ -177,14 +179,16 @@
   (define session-id
     (or (request-id-cookie req
                            #:name (session-manager-cookie-name sm)
-                           #:key (session-manager-secret-key sm))
+                           #:key (session-manager-secret-key sm)
+                           #:shelf-life (session-manager-shelf-life sm))
         (session-store-generate-id store)))
 
   (parameterize ([current-session-id session-id])
     (define cookie
       (make-id-cookie (session-manager-cookie-name sm) session-id
+                      #:path "/"
                       #:key (session-manager-secret-key sm)
-                      #:path "/"))
+                      #:max-age (session-manager-shelf-life sm)))
 
     (define resp (handler req))
     (define headers

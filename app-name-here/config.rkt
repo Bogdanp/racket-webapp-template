@@ -2,7 +2,8 @@
 
 (require (for-syntax racket/base
                      syntax/parse)
-         racket/string)
+         racket/string
+         web-server/http/id-cookie)
 
 (define (symbol->option-name s)
   (string-append "APP_NAME_HERE_" (string-replace (string-upcase (symbol->string s)) "-" "_")))
@@ -51,8 +52,11 @@
   (string->number test-db-port))
 
 (define-option {session-cookie-name "_sid"})
-(define-option {session-secret-key "supercalifragilisticexpialidocious"}
-  (string->bytes/utf-8 session-secret-key))
+(define-option {session-shelf-life "86400"}
+  (string->number session-shelf-life))
+(define-option {session-secret-key-path "/tmp/app-name-here-secret-key"})
+(define-option {session-secret-key #f}
+  (or session-secret-key (make-secret-salt/file session-secret-key-path)))
 
 (define-option {postmark-token #f})
 

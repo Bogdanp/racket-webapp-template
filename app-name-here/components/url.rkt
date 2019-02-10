@@ -7,13 +7,10 @@
 
 (provide make-application-url)
 
-(define query/c
-  (listof (cons/c symbol? string?)))
-
 (define/contract (make-application-url #:query [query null]
                                        #:fragment [fragment #f]
                                        . path-elements)
-  (() (#:query query/c
+  (() (#:query (listof (cons/c symbol? string?))
        #:fragment (or/c false/c string?)) #:rest (listof string?) . ->* . string?)
 
   (define path
