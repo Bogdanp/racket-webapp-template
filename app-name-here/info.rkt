@@ -7,6 +7,7 @@
                "db-lib"
                "forms-lib"
                "gregor-lib"
+               "libuuid"
                "net-cookies-lib"
                "north"
                "postmark-client"

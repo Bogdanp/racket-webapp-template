@@ -8,6 +8,7 @@
          "components/database.rkt"
          "components/mail.rkt"
          "components/server.rkt"
+         "components/session.rkt"
          "components/user.rkt"
          "components/url.rkt"
          (prefix-in config: "config.rkt"))
@@ -34,8 +35,8 @@
           'support_email   config:support-email))
 
 (define-system prod
-  [app (auth db mailer users) make-app]
-  [auth (users) auth-manager]
+  [app (auth db mailer sessions users) make-app]
+  [auth (sessions users) auth-manager]
   [db (make-database #:database config:db-name
                      #:username config:db-username
                      #:password config:db-password
@@ -46,4 +47,7 @@
                        #:common-variables common-mail-variables)]
   [server (app) (make-server #:host config:http-host
                              #:port config:http-port)]
+  [sessions (make-session-manager #:cookie-name config:session-cookie-name
+                                  #:secret-key config:session-secret-key
+                                  #:store (make-memory-session-store))]
   [users (db) user-manager])

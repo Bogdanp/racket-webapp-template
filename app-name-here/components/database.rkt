@@ -62,7 +62,7 @@
                         #:host [host "127.0.0.1"]
                         #:port [port 5432]
                         #:max-connections [max-connections 4]
-                        #:max-idle-connections [max-idle-connections 1]))
+                        #:max-idle-connections [max-idle-connections 2]))
   (database #f (hasheq 'database database-name
                        'username username
                        'password password

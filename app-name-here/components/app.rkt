@@ -1,8 +1,8 @@
 #lang racket/base
 
-(require component
+(require (for-syntax racket/base)
+         component
          net/url
-         (for-syntax racket/base)
          racket/contract/base
          racket/function
          racket/path
@@ -17,7 +17,6 @@
          web-server/dispatchers/filesystem-map
          web-server/http
          web-server/servlet-dispatch
-
          "auth.rkt"
          "database.rkt"
          "http.rkt"
@@ -26,12 +25,13 @@
          "page/auth.rkt"
          "page/common.rkt"
          "page/dashboard.rkt"
+         "session.rkt"
          "user.rkt")
 
 (provide
  (contract-out
   [struct app ([dispatcher dispatcher/c])]
-  [make-app (-> auth-manager? database? mailer? user-manager? app?)]))
+  [make-app (-> auth-manager? database? mailer? session-manager? user-manager? app?)]))
 
 (define-runtime-path static-path
   (build-path 'up 'up "static"))
@@ -52,7 +52,7 @@
   [(define component-start identity)
    (define component-stop identity)])
 
-(define (make-app auth db mailer users)
+(define (make-app auth db mailer sessions users)
   (define-values (dispatch-main reverse-main-uri)
     (dispatch-rules
      [("") dashboard-page]))
@@ -68,9 +68,11 @@
         (filter:make #rx"^/static/.+$" static-dispatcher)
         (dispatch/servlet
          (~> dispatch-auth
-             (wrap-browser-locale)))
+             (wrap-browser-locale)
+             ((wrap-session sessions))))
         (dispatch/servlet
          (~> dispatch-main
-             ((wrap-auth-required users))
-             (wrap-browser-locale)))
+             (wrap-browser-locale)
+             ((wrap-auth-required auth))
+             ((wrap-session sessions))))
         (dispatch/servlet not-found-page))))

@@ -75,9 +75,8 @@
                          (lambda _
                            (render render-widget (translate 'error-verify-email)))])
           (cond
-            [(auth-manager-login auth username password)
-             => (lambda (cookie)
-                  (redirect-to "/" #:headers (list (cookie->header cookie))))]
+            [(auth-manager-login! auth username password)
+             (redirect-to "/")]
 
             [else
              (render render-widget (translate 'error-invalid-credentials))]))]
@@ -86,7 +85,8 @@
         (render render-widget)]))))
 
 (define ((logout-page auth) req)
-  (redirect-to "/login" #:headers (list (cookie->header (auth-manager-logout auth)))))
+  (auth-manager-logout! auth)
+  (redirect-to "/login"))
 
 
 ;; signup & verify ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

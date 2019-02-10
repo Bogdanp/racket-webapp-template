@@ -50,8 +50,9 @@
 (define-option {test-db-port "5432"}
   (string->number test-db-port))
 
-(define-option {secret-key "supercalifragilisticexpialidocious"}
-  (string->bytes/utf-8 secret-key))
+(define-option {session-cookie-name "_sid"})
+(define-option {session-secret-key "supercalifragilisticexpialidocious"}
+  (string->bytes/utf-8 session-secret-key))
 
 (define-option {postmark-token #f})
 

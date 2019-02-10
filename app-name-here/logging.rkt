@@ -18,6 +18,8 @@
      config:log-level 'app
      config:log-level 'server
      config:log-level 'mail-adapter
+     config:log-level 'memory-session-store
+     config:log-level 'session
      config:log-level 'system
      config:log-level 'reloader))
 

@@ -1,16 +1,13 @@
 #lang racket/base
 
 (require component
-         (only-in net/cookies/server
-                  cookie?)
          net/url
          racket/contract/base
          racket/function
          racket/match
          threading
          web-server/http
-         web-server/http/id-cookie
-         (prefix-in config: "../config.rkt")
+         "session.rkt"
          "url.rkt"
          "user.rkt")
 
@@ -19,41 +16,40 @@
   [exn:fail:auth-manager? (-> any/c boolean?)]
   [exn:fail:auth-manager:unverified? (-> any/c boolean?)]
   [current-user (parameter/c (or/c false/c user?))]
-  [struct auth-manager ([user-manager user-manager?])]
-  [auth-manager-login (-> auth-manager? string? string? (or/c false/c cookie?))]
-  [auth-manager-logout (-> auth-manager? cookie?)]
-  [wrap-auth-required (-> user-manager? (-> (-> request? response?) (-> request? response?)))]))
+  [struct auth-manager ([session-manager session-manager?]
+                        [user-manager user-manager?])]
+  [auth-manager-login! (-> auth-manager? string? string? (or/c false/c void?))]
+  [auth-manager-logout! (-> auth-manager? void?)]
+  [wrap-auth-required (-> auth-manager? (-> (-> request? response?) (-> request? response?)))]))
 
-(define id-cookie-name "_uid")
-
-(define current-user (make-parameter #f))
+(define current-user
+  (make-parameter #f))
 
 (struct exn:fail:auth-manager exn:fail ())
 (struct exn:fail:auth-manager:unverified exn:fail:auth-manager ())
 
-(struct auth-manager (user-manager)
+(struct auth-manager (session-manager user-manager)
   #:methods gen:component
   [(define component-start identity)
    (define component-stop identity)])
 
-(define (auth-manager-login am username password)
+(define (auth-manager-login! am username password)
   (match (user-manager-login (auth-manager-user-manager am) username password)
     [#f #f]
     [(user id _ _ verified? _ _ _)
      (unless verified?
        (raise (exn:fail:auth-manager:unverified "this user is not verified" (current-continuation-marks))))
 
-     (~> (number->string id)
-         (make-id-cookie id-cookie-name _ #:key config:secret-key))]))
+     (session-manager-set! (auth-manager-session-manager am) 'uid (number->string id))]))
 
-(define (auth-manager-logout am)
-  (logout-id-cookie id-cookie-name))
+(define (auth-manager-logout! am)
+  (session-manager-remove! (auth-manager-session-manager am) 'uid))
 
-(define (((wrap-auth-required users) handler) req)
+(define (((wrap-auth-required am) handler) req)
   (define user
-    (and~>> (request-id-cookie req #:name id-cookie-name #:key config:secret-key)
+    (and~>> (session-manager-ref (auth-manager-session-manager am) 'uid)
             (string->number)
-            (user-manager-lookup/id users)))
+            (user-manager-lookup/id (auth-manager-user-manager am))))
 
   (if user
       (parameterize ([current-user user])
@@ -65,13 +61,17 @@
   (require db
            rackunit
            rackunit/text-ui
+           (prefix-in config: "../config.rkt")
            "database.rkt")
 
   (define-system test
-    [auth (users) auth-manager]
+    [auth (sessions users) auth-manager]
     [db (make-database #:database config:test-db-name
                        #:username config:test-db-username
                        #:password config:test-db-password)]
+    [sessions (make-session-manager #:cookie-name config:session-cookie-name
+                                    #:secret-key config:session-secret-key
+                                    #:store (make-memory-session-store))]
     [users (db) user-manager])
 
   (run-tests
@@ -95,14 +95,14 @@
 
      (test-case "returns #f if the user does not exist"
        (check-false
-        (auth-manager-login (system-get test-system 'auth) "idontexist" "hunter2")))
+        (auth-manager-login! (system-get test-system 'auth) "idontexist" "hunter2")))
 
      (test-case "returns #f if the password is wrong"
        (check-false
-        (auth-manager-login (system-get test-system 'auth) "bogdan" "invalid")))
+        (auth-manager-login! (system-get test-system 'auth) "bogdan" "invalid")))
 
      (test-case "fails if the user is not verified"
        (check-exn
         exn:fail:auth-manager:unverified?
         (lambda _
-          (auth-manager-login (system-get test-system 'auth) "bogdan" "hunter2"))))))))
+          (auth-manager-login! (system-get test-system 'auth) "bogdan" "hunter2"))))))))

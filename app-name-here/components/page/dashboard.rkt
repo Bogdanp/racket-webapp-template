@@ -2,6 +2,8 @@
 
 (require racket/contract/base
          web-server/http
+         "../auth.rkt"
+         "../user.rkt"
          "../template.rkt")
 
 (provide
@@ -10,4 +12,6 @@
 
 (define (dashboard-page req)
   (page
-   (container `(h1 "Dashboard"))))
+   (container
+    '(h1 "Dashboard")
+    `(p "Hi " ,(user-username (current-user)) "!"))))

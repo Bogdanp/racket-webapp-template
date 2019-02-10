@@ -3,18 +3,15 @@
 (require component
          racket/contract/base
          web-server/web-server
-
          "app.rkt")
 
-(provide (contract-out
-          [struct server [(options hash?)
-                          (app app?)
-                          (stopper (or/c false/c (-> void?)))]]
-
-          [make-server (->* ()
-                            (#:host string?
-                             #:port (integer-in 0 65535))
-                            (-> app? server?))]))
+(provide
+ (contract-out
+  [server? (-> any/c boolean?)]
+  [make-server (->* ()
+                    (#:host string?
+                     #:port (integer-in 0 65535))
+                    (-> app? server?))]))
 
 (define-logger server)
 
