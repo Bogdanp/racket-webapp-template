@@ -5,7 +5,10 @@ A web application template for Racket.
 ## Features
 
 * Code reloading.
-* Database access.
+* Database access and migrations.
+* Sessions and flash storage.
+* Users and authentication.
+* Localization.
 
 ## Getting Started
 
