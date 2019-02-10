@@ -8,7 +8,8 @@
          struct-plus-plus
          threading
          web-server/http
-         web-server/http/id-cookie)
+         web-server/http/id-cookie
+         "../util.rkt")
 
 ;; Session stores ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -25,11 +26,6 @@
   (session-store-ref session-store session-id key default)
   (session-store-set! session-store session-id key value)
   (session-store-remove! session-store session-id key))
-
-(define (box-swap! b f)
-  (let loop ([v (unbox b)])
-    (unless (box-cas! b v (f v))
-      (loop (unbox b)))))
 
 (define-logger memory-session-store)
 

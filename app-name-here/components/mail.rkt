@@ -8,6 +8,7 @@
          racket/generic
          racket/hash
          racket/string
+         "../util.rkt"
          "url.rkt"
          "user.rkt")
 
@@ -62,12 +63,8 @@
                'template (or template-id template-alias)
                'template-model template-model))
 
-     (define queue-box (stub-mail-adapter-queue ma))
-     (let loop ([queue (unbox queue-box)])
-       (unless (box-cas! queue-box queue (cons message queue))
-         (loop (unbox queue-box))))
-
-     (log-mail-adapter-info "sent templated email ~v" message))])
+     (box-swap! (stub-mail-adapter-queue ma) (curry cons message))
+     (log-mail-adapter-info "templated email added to outbox ~v" message))])
 
 (define (make-stub-mail-adapter)
   (stub-mail-adapter (box null)))
