@@ -19,6 +19,7 @@
          web-server/servlet-dispatch
          "auth.rkt"
          "database.rkt"
+         "flash.rkt"
          "http.rkt"
          "l10n.rkt"
          "mail.rkt"
@@ -31,7 +32,7 @@
 (provide
  (contract-out
   [struct app ([dispatcher dispatcher/c])]
-  [make-app (-> auth-manager? database? mailer? session-manager? user-manager? app?)]))
+  [make-app (-> auth-manager? database? flash-manager? mailer? session-manager? user-manager? app?)]))
 
 (define-runtime-path static-path
   (build-path 'up 'up "static"))
@@ -52,7 +53,7 @@
   [(define component-start identity)
    (define component-stop identity)])
 
-(define (make-app auth db mailer sessions users)
+(define (make-app auth db flashes mailer sessions users)
   (define-values (dispatch-main reverse-main-uri)
     (dispatch-rules
      [("") dashboard-page]))

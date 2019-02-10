@@ -6,6 +6,7 @@
          "components/app.rkt"
          "components/auth.rkt"
          "components/database.rkt"
+         "components/flash.rkt"
          "components/mail.rkt"
          "components/server.rkt"
          "components/session.rkt"
@@ -35,13 +36,14 @@
           'support_email   config:support-email))
 
 (define-system prod
-  [app (auth db mailer sessions users) make-app]
+  [app (auth db flashes mailer sessions users) make-app]
   [auth (sessions users) auth-manager]
   [db (make-database #:database config:db-name
                      #:username config:db-username
                      #:password config:db-password
                      #:host config:db-host
                      #:port config:db-port)]
+  [flashes (sessions) make-flash-manager]
   [mailer (make-mailer #:adapter mail-adapter
                        #:sender config:support-email
                        #:common-variables common-mail-variables)]

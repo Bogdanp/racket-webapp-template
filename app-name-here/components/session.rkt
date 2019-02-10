@@ -17,7 +17,8 @@
  (contract-out
   [session-store? (-> any/c boolean?)]
   [memory-session-store? (-> any/c boolean?)]
-  [make-memory-session-store (->* () (#:ttl exact-positive-integer?) memory-session-store?)]))
+  [make-memory-session-store (->* () (#:ttl exact-positive-integer?
+                                      #:file-path path-string?) memory-session-store?)]))
 
 (define-generics session-store
   (session-store-generate-id session-store)
@@ -25,6 +26,7 @@
   (session-store-persist! session-store)
   (session-store-ref session-store session-id key default)
   (session-store-set! session-store session-id key value)
+  (session-store-update! session-store session-id key f default)
   (session-store-remove! session-store session-id key))
 
 (define-logger memory-session-store)
@@ -38,7 +40,9 @@
      (when (file-exists? (memory-session-store-file-path ss))
        (with-input-from-file (memory-session-store-file-path ss)
          (lambda ()
-           (set-box! (memory-session-store-data ss) (read))))))
+           (define sessions (read))
+           (unless (eof-object? sessions)
+             (set-box! (memory-session-store-data ss) sessions))))))
 
    (define (session-store-persist! ss)
      (with-output-to-file (memory-session-store-file-path ss)
@@ -55,6 +59,9 @@
    (define (session-store-set! ss session-id key value)
      (memory-session-store-update-session ss session-id (curryr hash-set key value)))
 
+   (define (session-store-update! ss session-id key value default)
+     (memory-session-store-update-session ss session-id (curryr hash-update key value default)))
+
    (define (session-store-remove! ss session-id key)
      (memory-session-store-update-session ss session-id (curryr hash-remove key)))])
 
@@ -68,7 +75,7 @@
                     (cons (current-seconds) (f (cdr session-data))))
                   (cons (current-seconds) (hasheq))))))
 
-(define ((memory-session-store-expire-stale-sessions ttl) all-sessions)
+(define ((memory-session-store-remove-stale-sessions ttl) all-sessions)
   (for/fold ([live-sessions (hasheq)])
             ([(session-id session-data) (in-hash all-sessions)])
     (cond
@@ -89,7 +96,7 @@
        (let loop ()
          (sleep ttl)
          (log-memory-session-store-debug "expiring stale sessions")
-         (box-swap! data-box (memory-session-store-expire-stale-sessions ttl))
+         (box-swap! data-box (memory-session-store-remove-stale-sessions ttl))
          (loop))))
 
     (memory-session-store custodian data-box file-path)))
@@ -104,9 +111,15 @@
                               #:secret-key bytes?
                               #:store session-store?)
                              (-> session-manager?))]
+
+  [current-session-id (parameter/c (or/c false/c string?))]
+
+  [session-manager-ref (case-> (-> session-manager? symbol? any/c)
+                               (-> session-manager? symbol? any/c any/c))]
   [session-manager-set! (-> session-manager? symbol? any/c void?)]
   [session-manager-remove! (-> session-manager? symbol? void?)]
-  [session-manager-ref (->* (session-manager? symbol?) (any/c) any/c)]))
+  [session-manager-update! (case-> (-> session-manager? symbol? (-> any/c any/c) any/c)
+                                   (-> session-manager? symbol? (-> any/c any/c) any/c any/c))]))
 
 (define-logger session)
 
@@ -142,6 +155,15 @@
 
 (define (session-manager-remove! sm key)
   (session-store-remove! (session-manager-store sm) (current-session-id) key))
+
+(define session-manager-update!
+  (case-lambda
+    [(sm key f default)
+     (session-store-update! (session-manager-store sm) (current-session-id) key f default)]
+
+    [(sm key f)
+     (session-manager-update! sm key f (lambda ()
+                                         (raise-user-error 'session-manager-update! "no value found for key ~a" key)))]))
 
 
 ;; Middleware ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
