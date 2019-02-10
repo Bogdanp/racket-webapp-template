@@ -1,12 +1,21 @@
 #lang racket/base
 
 (require net/url
+         racket/contract
          racket/function
          (prefix-in config: "../config.rkt"))
 
 (provide make-application-url)
 
-(define (make-application-url #:query [query null] . path-elements)
+(define query/c
+  (listof (cons/c symbol? string?)))
+
+(define/contract (make-application-url #:query [query null]
+                                       #:fragment [fragment #f]
+                                       . path-elements)
+  (() (#:query query/c
+       #:fragment (or/c false/c string?)) #:rest (listof string?) . ->* . string?)
+
   (define path
     (map (curryr path/param null) path-elements))
 
@@ -16,4 +25,4 @@
       [else (string->number config:url-port)]))
 
   (url->string
-   (url config:url-scheme #f config:url-host port #t path query #f)))
+   (url config:url-scheme #f config:url-host port #t path query fragment)))
