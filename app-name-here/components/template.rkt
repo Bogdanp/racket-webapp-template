@@ -9,6 +9,7 @@
          web-server/http
          (prefix-in config: "../config.rkt")
          "auth.rkt"
+         "flash.rkt"
          "l10n.rkt"
          "preload.rkt")
 
@@ -71,6 +72,16 @@
                (nav (nav-item "/" (translate 'nav-dashboard))
                     (nav-item "/login" (translate 'nav-log-in))
                     (nav-item "/signup" (translate 'nav-sign-up)))))
+
+       ,@(xexpr-when (not (null? (current-flash-messages)))
+           (container
+            `(ul
+              ((class "flash"))
+              ,@(for/list ([flash (current-flash-messages)])
+                  `(li
+                    ((class ,(format "flash__item flash__item--~a" (car flash))))
+                    ,(cdr flash))))))
+
        ,@content)))
 
   (response/xexpr

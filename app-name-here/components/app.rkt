@@ -63,17 +63,19 @@
      [("login") (login-page auth)]
      [("logout") (logout-page auth)]
      [("signup") (signup-page auth mailer users)]
-     [("verify" (integer-arg) (string-arg)) (verify-page users)]))
+     [("verify" (integer-arg) (string-arg)) (verify-page flashes users)]))
 
   (app (sequencer:make
         (filter:make #rx"^/static/.+$" static-dispatcher)
         (dispatch/servlet
          (~> dispatch-auth
              (wrap-browser-locale)
+             ((wrap-flash flashes))
              ((wrap-session sessions))))
         (dispatch/servlet
          (~> dispatch-main
              (wrap-browser-locale)
              ((wrap-auth-required auth))
+             ((wrap-flash flashes))
              ((wrap-session sessions))))
         (dispatch/servlet not-found-page))))

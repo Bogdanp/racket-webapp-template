@@ -47,7 +47,7 @@
 
 (define (((wrap-auth-required am) handler) req)
   (define user
-    (and~>> (session-manager-ref (auth-manager-session-manager am) 'uid)
+    (and~>> (session-manager-ref (auth-manager-session-manager am) 'uid #f)
             (string->number)
             (user-manager-lookup/id (auth-manager-user-manager am))))
 

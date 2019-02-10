@@ -6,6 +6,7 @@
          web-server/servlet
 
          "../auth.rkt"
+         "../flash.rkt"
          "../l10n.rkt"
          "../mail.rkt"
          "../user.rkt"
@@ -16,7 +17,7 @@
   [login-page (-> auth-manager? (-> request? response?))]
   [logout-page (-> auth-manager? (-> request? response?))]
   [signup-page (-> auth-manager? mailer? user-manager? (-> request? response?))]
-  [verify-page (-> user-manager? (-> request? integer? string? response?))]))
+  [verify-page (-> flash-manager? user-manager? (-> request? integer? string? response?))]))
 
 
 (define ((make-labeled-field label name widget) render-widget)
@@ -151,6 +152,7 @@
     '(h1 "You've been signed up")
     '(p "You need to confirm your e-mail address before you can log in."))))
 
-(define ((verify-page users) req user-id verification-code)
+(define ((verify-page flashes users) req user-id verification-code)
   (user-manager-verify users user-id verification-code)
+  (flash flashes 'success "You have successfully verified your e-mail address!")
   (redirect-to "/login"))

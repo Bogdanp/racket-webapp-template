@@ -85,6 +85,19 @@ body {
   }
 }
 
+.flash {
+  list-style-type: none;
+  margin: 12px 0;
+
+  &__item {
+    padding: 12px;
+    background: $cool-grey-3;
+    border-radius: 4px;
+
+    color: $white;
+  }
+}
+
 .form {
   &--login,
   &--signup {
