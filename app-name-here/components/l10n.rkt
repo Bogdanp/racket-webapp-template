@@ -10,10 +10,11 @@
          web-server/http
          "profiler.rkt")
 
+;; Translate ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (provide
  (contract-out
-  [translate (->* (symbol?) #:rest (listof string?) string?)]
-  [wrap-browser-locale (-> (-> request? response?) (-> request? response?))]))
+  [translate (->* (symbol?) #:rest (listof string?) string?)]))
 
 (define-runtime-path locales-path
   (build-path 'up 'up "resources" "locales"))
@@ -35,22 +36,15 @@
 
     [else (symbol->string message-name)]))
 
-(define (language-header->locale header)
-  (define specs
-    (for/list ([spec (string-split header ",")])
-      (match-define (list _ language country weight)
-        (regexp-match #px"\\s*([^-]+)(?:-([^\\s;]+))?(?:;q=([\\d]+))?\\s*" spec))
 
-      (cons (list (string->symbol (string-downcase language))
-                  (string->symbol (string-downcase (or country language))))
-            (string->number (or weight "1")))))
+;; Middleware ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-  (define (key a b)
-    (> (cdr a) (cdr b)))
+(provide
+ (contract-out
+  [wrap-browser-locale (-> (-> request? response?) (-> request? response?))]))
 
-  (for/first ([spec (sort specs key)]
-              #:when (member (car spec) locales))
-    (car spec)))
+(define language-spec-re
+  #px"\\s*([^-]+)(?:-([^\\s;]+))?(?:;q=([\\d]+))?\\s*")
 
 (define ((wrap-browser-locale handler) req)
   (with-timing 'http "wrap-browser-locale"
@@ -66,6 +60,23 @@
     (parameterize ([current-language (car locale)]
                    [current-country (cadr locale)])
       (handler req))))
+
+(define (language-header->locale header)
+  (define specs
+    (for/list ([spec (string-split header ",")])
+      (match-define (list _ language country weight)
+        (regexp-match language-spec-re spec))
+
+      (cons (list (string->symbol (string-downcase language))
+                  (string->symbol (string-downcase (or country language))))
+            (string->number (or weight "1")))))
+
+  (define (key a b)
+    (> (cdr a) (cdr b)))
+
+  (for/first ([spec (sort specs key)]
+              #:when (member (car spec) locales))
+    (car spec)))
 
 (module+ test
   (require rackunit
