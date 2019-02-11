@@ -122,11 +122,12 @@
         (type "checkbox")
         (id ,toggle-id)))
       (label
-       ((class "uprofiler-timing-label")
-        (for ,toggle-id))
-       ,(symbol->string (timing-label timing)))
-      (span ((class "uprofiler-timing-description")) (code ,(timing-description timing)))
-      (span ((class "uprofiler-timing-duration")) ,(format-duration (timing-duration timing)))
+       ((for ,toggle-id))
+       (span
+        ((class "uprofiler-timing-label"))
+        ,(symbol->string (timing-label timing)))
+       (span ((class "uprofiler-timing-description")) (code ,(timing-description timing)))
+       (span ((class "uprofiler-timing-duration")) ,(format-duration (timing-duration timing))))
       ,@(map render-timing (profile-find-children profile timing))))
 
   (unless (null? roots)
@@ -143,7 +144,9 @@
          ,(format-duration (apply + (map timing-duration roots))))
         (div
          ((class "uprofiler-timings"))
-         ,@(map render-timing roots)
+         (div
+          ((class "uprofiler-timings-inner"))
+          ,@(map render-timing roots))
          (label
           ((class "uprofiler-close")
            (for "uprofiler-toggle"))

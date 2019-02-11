@@ -115,12 +115,12 @@
 
 (define/contract (user-manager-lookup/id um id)
   (-> user-manager? exact-positive-integer? (or/c false/c user?))
-  (with-timing 'user-manager (format "(user-manager-lookup/id ~a)" id)
+  (with-timing 'user-manager (format "(user-manager-lookup/id ~v)" id)
     (user-manager-lookup um (= id ,id))))
 
 (define/contract (user-manager-lookup/username um username)
   (-> user-manager? string? (or/c false/c user?))
-  (with-timing 'user-manager (format "(user-manager-lookup/username ~a)" username)
+  (with-timing 'user-manager (format "(user-manager-lookup/username ~v)" username)
     (user-manager-lookup um (= username ,username))))
 
 (define/contract (user-manager-login um username password)

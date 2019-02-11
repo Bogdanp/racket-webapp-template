@@ -23,14 +23,19 @@
   display: none;
   background: #fff;
   border: 1px solid #aaa;
-  padding: 6px 12px;
+  padding: 12px;
   color: #000;
+
+  &-inner {
+    display: block;
+    max-height: 400px;
+    overflow-y: scroll;
+  }
 }
 
 .uprofiler-close {
   display: block;
   padding: 6px 12px;
-  margin: 0 0 6px 0;
   background: #000;
   color: #fff;
   font-family: courier;
@@ -51,8 +56,17 @@
   display: block;
   margin: 0 0 0 10px;
   padding: 6px 0 0 6px;
-  border: 1px solid transparent;
+  border: 2px solid transparent;
+  border-left: 1px dashed #ddd;
+  border-right: none;
   border-bottom: 2px solid transparent;
+  transition: all 0.1s;
+
+  label {
+    &:before {
+      content: "▶ ";
+    }
+  }
 
   &:hover {
     background: rgba(darkblue, 0.02);
@@ -67,10 +81,6 @@
 
   &-label {
     font-weight: bold;
-
-    &:before {
-      content: "▶ ";
-    }
   }
 
   &-duration {
@@ -91,7 +101,7 @@
     display: none;
   }
 
-  &-toggle:checked ~ .uprofiler-timing-label:before {
+  &-toggle:checked ~ label:before {
     content: "▼ ";
   }
 
@@ -100,6 +110,13 @@
   }
 }
 
-.uprofiler-timings > .uprofiler-timing {
+.uprofiler-timings-inner > .uprofiler-timing {
+  border-right: 1px solid transparent;
   margin: 0;
+
+  &:hover {
+    background: rgba(darkblue, 0.02);
+    border-color: black;
+  }
+
 }
