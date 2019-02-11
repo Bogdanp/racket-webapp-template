@@ -154,15 +154,18 @@
                                    (raise-user-error 'session-manager-ref "no value found for key ~a" key)))]))
 
 (define (session-manager-set! sm key value)
-  (session-store-set! (session-manager-store sm) (current-session-id) key value))
+  (with-timing 'session "session-manager-set!"
+    (session-store-set! (session-manager-store sm) (current-session-id) key value)))
 
 (define (session-manager-remove! sm key)
-  (session-store-remove! (session-manager-store sm) (current-session-id) key))
+  (with-timing 'session "session-manager-remove!"
+    (session-store-remove! (session-manager-store sm) (current-session-id) key)))
 
 (define session-manager-update!
   (case-lambda
     [(sm key f default)
-     (session-store-update! (session-manager-store sm) (current-session-id) key f default)]
+     (with-timing 'session "session-manager-update!"
+       (session-store-update! (session-manager-store sm) (current-session-id) key f default))]
 
     [(sm key f)
      (session-manager-update! sm key f (lambda ()

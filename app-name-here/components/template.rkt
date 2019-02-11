@@ -7,11 +7,13 @@
          racket/format
          racket/runtime-path
          web-server/http
+         xml
          (prefix-in config: "../config.rkt")
          "auth.rkt"
          "flash.rkt"
          "l10n.rkt"
-         "preload.rkt")
+         "preload.rkt"
+         "profiler.rkt")
 
 (provide container static-uri page xexpr-when)
 
@@ -56,38 +58,52 @@
 (define (render-page #:subtitle [subtitle #f]
                      #:show-nav? [show-nav? #t]
                      . content)
-  (define page
-    `(html
-      (head
-       (title
-        ,(if subtitle
-             (~a subtitle " - AppNameHere")
-             "AppNameHere"))
-       (link ((rel "stylesheet") (href ,(static-uri "css/screen.css")))))
-      (body
-       ,@(xexpr-when show-nav?
-           (if (current-user)
-               (nav (nav-item "/" (translate 'nav-dashboard))
-                    (nav-item "/logout" (translate 'nav-log-out)))
-               (nav (nav-item "/" (translate 'nav-dashboard))
-                    (nav-item "/login" (translate 'nav-log-in))
-                    (nav-item "/signup" (translate 'nav-sign-up)))))
 
-       ,@(xexpr-when (not (null? (current-flash-messages)))
-           (container
-            `(ul
-              ((class "flash"))
-              ,@(for/list ([flash (current-flash-messages)])
-                  `(li
-                    ((class ,(format "flash__item flash__item--~a" (car flash))))
-                    ,(cdr flash))))))
+  ;; Write-profile is called inside a different thread so we have to
+  ;; grab the current profile here and then pass it in to ensure that
+  ;; the right profile gets rendered.
+  (define profile (current-profile))
 
-       ,@content)))
+  (with-timing 'template "render-page"
+    (define page
+      `(html
+        (head
+         (title
+          ,(if subtitle
+               (~a subtitle " - AppNameHere")
+               "AppNameHere"))
+         (link ((rel "stylesheet") (href ,(static-uri "css/screen.css")))))
+        (body
+         ,@(xexpr-when show-nav?
+             (if (current-user)
+                 (nav (nav-item "/" (translate 'nav-dashboard))
+                      (nav-item "/logout" (translate 'nav-log-out)))
+                 (nav (nav-item "/" (translate 'nav-dashboard))
+                      (nav-item "/login" (translate 'nav-log-in))
+                      (nav-item "/signup" (translate 'nav-sign-up)))))
 
-  (response/xexpr
-   #:preamble #"<!doctype html>"
-   #:headers (make-preload-headers)
-   page))
+         ,@(xexpr-when (not (null? (current-flash-messages)))
+             (container
+              `(ul
+                ((class "flash"))
+                ,@(for/list ([flash (current-flash-messages)])
+                    `(li
+                      ((class ,(format "flash__item flash__item--~a" (car flash))))
+                      ,(cdr flash))))))
+
+         ,@content)))
+
+    (response
+     200
+     #"OK"
+     (current-seconds)
+     #"text/html; charset=utf-8"
+     (make-preload-headers)
+     (lambda (out)
+       (parameterize ([current-output-port out])
+         (displayln "<!doctype html>")
+         (write-xml/content (xexpr->xml page))
+         (write-profile profile))))))
 
 (define-syntax (page stx)
   (syntax-parse stx

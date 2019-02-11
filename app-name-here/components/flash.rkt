@@ -30,10 +30,11 @@
   (make-parameter null))
 
 (define (flash fm key message)
-  (session-manager-update! (flash-manager-session-manager fm)
-                           flash-messages-key
-                           (lambda (messages)
-                             (cons (cons key message) messages)) null))
+  (with-timing 'flash "flash"
+    (session-manager-update! (flash-manager-session-manager fm)
+                             flash-messages-key
+                             (lambda (messages)
+                               (cons (cons key message) messages)) null)))
 
 
 ;; Middleware ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

@@ -53,8 +53,9 @@
   (set-user-password-hash u password-hash))
 
 (define (user-password-valid? u p)
-  (parameterize ([crypto-factories (list argon2-factory)])
-    (pwhash-verify #f (string->bytes/utf-8 p) (user-password-hash u))))
+  (with-timing 'user "user-password-valid?"
+    (parameterize ([crypto-factories (list argon2-factory)])
+      (pwhash-verify #f (string->bytes/utf-8 p) (user-password-hash u)))))
 
 
 ;; user-manager ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -124,17 +125,19 @@
 
 (define/contract (user-manager-login um username password)
   (-> user-manager? string? string? (or/c false/c user?))
-  (define user (user-manager-lookup/username um username))
-  (and user (user-password-valid? user password) user))
+  (with-timing 'user-manager "user-manager-login"
+    (define user (user-manager-lookup/username um username))
+    (and user (user-password-valid? user password) user)))
 
 (define/contract (user-manager-verify um id verification-code)
   (-> user-manager? exact-positive-integer? string? void?)
-  (void
-   (with-database-transaction [conn (user-manager-db um)]
-     (query-exec conn (update users
-                              #:set [verified ,#t]
-                              #:where (and (= id ,id)
-                                           (= verification_code ,verification-code)))))))
+  (with-timing 'user-manager "user-manager-verify"
+    (void
+     (with-database-transaction [conn (user-manager-db um)]
+       (query-exec conn (update users
+                                #:set [verified ,#t]
+                                #:where (and (= id ,id)
+                                             (= verification_code ,verification-code))))))))
 
 
 (module+ test
