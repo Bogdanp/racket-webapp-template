@@ -16,6 +16,7 @@
          (prefix-in sequencer: web-server/dispatchers/dispatch-sequencer)
          web-server/dispatchers/filesystem-map
          web-server/http
+         web-server/managers/lru
          web-server/servlet-dispatch
          "auth.rkt"
          "database.rkt"
@@ -55,6 +56,12 @@
    (define component-stop identity)])
 
 (define (make-app auth db flashes mailer sessions users)
+  (define manager
+    (make-threshold-LRU-manager (~> (expired-page flashes)
+                                    (wrap-browser-locale)
+                                    ((wrap-flash flashes))
+                                    ((wrap-session sessions))) (* 1024 1024 128)))
+
   (define-values (dispatch-main reverse-main-uri)
     (dispatch-rules
      [("") dashboard-page]))
@@ -69,12 +76,14 @@
   (app (sequencer:make
         (filter:make #rx"^/static/.+$" static-dispatcher)
         (dispatch/servlet
+         #:manager manager
          (~> dispatch-auth
              (wrap-browser-locale)
              ((wrap-flash flashes))
              ((wrap-session sessions))
              (wrap-profiler)))
         (dispatch/servlet
+         #:manager manager
          (~> dispatch-main
              (wrap-browser-locale)
              ((wrap-auth-required auth))
