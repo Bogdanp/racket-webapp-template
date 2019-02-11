@@ -187,6 +187,13 @@
   (run-tests
    (test-suite
     "session"
+    #:before
+    (lambda _
+      (component-start session-manager))
+
+    #:after
+    (lambda _
+      (component-stop session-manager))
 
     (parameterize ([current-session-id "a"])
       (session-manager-set! session-manager 'uid "1")
