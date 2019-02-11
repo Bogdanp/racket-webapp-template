@@ -172,6 +172,46 @@
                                          (raise-user-error 'session-manager-update! "no value found for key ~a" key)))]))
 
 
+(module+ test
+  (require racket/file
+           rackunit
+           rackunit/text-ui
+           (prefix-in config: "../config.rkt"))
+
+  (define session-manager
+    ((make-session-manager #:cookie-name config:session-cookie-name
+                           #:shelf-life config:session-shelf-life
+                           #:secret-key config:session-secret-key
+                           #:store (make-memory-session-store #:file-path (make-temporary-file)))))
+
+  (run-tests
+   (test-suite
+    "session"
+
+    (parameterize ([current-session-id "a"])
+      (session-manager-set! session-manager 'uid "1")
+
+      (test-case "can ref keys"
+        (check-equal? "1" (session-manager-ref session-manager 'uid)))
+
+      (test-case "can ref missing keys w/ error"
+        (check-exn
+         exn:fail:user?
+         (lambda ()
+           (session-manager-ref session-manager 'missing))))
+
+      (test-case "can ref missing keys w/ default"
+        (check-false (session-manager-ref session-manager 'missing #f)))
+
+      (test-case "can't ref other people's keys"
+        (parameterize ([current-session-id "b"])
+          (check-false (session-manager-ref session-manager 'uid #f))))
+
+      (test-case "can't ref removed keys"
+        (session-manager-remove! session-manager 'uid)
+        (check-false (session-manager-ref session-manager 'uid #f)))))))
+
+
 ;; Middleware ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (provide

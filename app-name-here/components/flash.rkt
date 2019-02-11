@@ -61,6 +61,7 @@
   (define-system test
     [flashes (sessions) flash-manager]
     [sessions (make-session-manager #:cookie-name config:session-cookie-name
+                                    #:shelf-life config:session-shelf-life
                                     #:secret-key config:session-secret-key
                                     #:store (make-memory-session-store #:file-path (make-temporary-file)))])
 
