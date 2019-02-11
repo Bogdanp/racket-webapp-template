@@ -7,6 +7,7 @@
          racket/match
          threading
          web-server/http
+         "profiler.rkt"
          "session.rkt"
          "url.rkt"
          "user.rkt")
@@ -46,15 +47,16 @@
   (session-manager-remove! (auth-manager-session-manager am) 'uid))
 
 (define (((wrap-auth-required am) handler) req)
-  (define user
-    (and~>> (session-manager-ref (auth-manager-session-manager am) 'uid #f)
-            (string->number)
-            (user-manager-lookup/id (auth-manager-user-manager am))))
+  (with-timing 'auth "wrap-auth-required"
+    (define user
+      (and~>> (session-manager-ref (auth-manager-session-manager am) 'uid #f)
+              (string->number)
+              (user-manager-lookup/id (auth-manager-user-manager am))))
 
-  (if user
-      (parameterize ([current-user user])
-        (handler req))
-      (redirect-to (make-application-url "login" #:query `((return . ,(url->string (request-uri req))))))))
+    (if user
+        (parameterize ([current-user user])
+          (handler req))
+        (redirect-to (make-application-url "login" #:query `((return . ,(url->string (request-uri req)))))))))
 
 
 (module+ test

@@ -2,7 +2,8 @@
 
 (require racket/match
          racket/path
-         web-server/http)
+         web-server/http
+         "profiler.rkt")
 
 (provide
  current-preload-dependencies
@@ -22,5 +23,6 @@
     [_       #f]))
 
 (define (make-preload-headers)
-  (for/list ([path (current-preload-dependencies)])
-    (header #"Link" (string->bytes/utf-8 (format "<~a>; rel=preload; as=~a" path (path->preload-as path))))))
+  (with-timing 'preload "make-preload-headers"
+    (for/list ([path (current-preload-dependencies)])
+      (header #"Link" (string->bytes/utf-8 (format "<~a>; rel=preload; as=~a" path (path->preload-as path)))))))

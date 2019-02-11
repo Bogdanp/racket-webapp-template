@@ -7,7 +7,8 @@
          racket/runtime-path
          racket/string
          srfi/29
-         web-server/http)
+         web-server/http
+         "profiler.rkt")
 
 (provide
  (contract-out
@@ -52,18 +53,19 @@
     (car spec)))
 
 (define ((wrap-browser-locale handler) req)
-  (define accept-language
-    (bytes->string/utf-8
-     (cond
-       [(headers-assq* #"accept-language" (request-headers/raw req)) => header-value]
-       [else #"en-US"])))
+  (with-timing 'http "wrap-browser-locale"
+    (define accept-language
+      (bytes->string/utf-8
+       (cond
+         [(headers-assq* #"accept-language" (request-headers/raw req)) => header-value]
+         [else #"en-US"])))
 
-  (define locale
-    (or (language-header->locale accept-language) '(en us)))
+    (define locale
+      (or (language-header->locale accept-language) '(en us)))
 
-  (parameterize ([current-language (car locale)]
-                 [current-country (cadr locale)])
-    (handler req)))
+    (parameterize ([current-language (car locale)]
+                   [current-country (cadr locale)])
+      (handler req))))
 
 (module+ test
   (require rackunit

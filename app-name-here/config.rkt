@@ -26,6 +26,9 @@
 (define-option {debug}
   (equal? debug "x"))
 
+(define-option {profile #f}
+  (equal? profile "x"))
+
 (define-option {log-level "info"}
   (string->symbol log-level))
 

@@ -26,6 +26,7 @@
          "page/auth.rkt"
          "page/common.rkt"
          "page/dashboard.rkt"
+         "profiler.rkt"
          "session.rkt"
          "user.rkt")
 
@@ -71,11 +72,13 @@
          (~> dispatch-auth
              (wrap-browser-locale)
              ((wrap-flash flashes))
-             ((wrap-session sessions))))
+             ((wrap-session sessions))
+             (wrap-profiler)))
         (dispatch/servlet
          (~> dispatch-main
              (wrap-browser-locale)
              ((wrap-auth-required auth))
              ((wrap-flash flashes))
-             ((wrap-session sessions))))
+             ((wrap-session sessions))
+             (wrap-profiler)))
         (dispatch/servlet not-found-page))))

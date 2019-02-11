@@ -9,7 +9,8 @@
          threading
          web-server/http
          web-server/http/id-cookie
-         "../util.rkt")
+         "../util.rkt"
+         "profiler.rkt")
 
 ;; Session stores ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -175,24 +176,25 @@
   [wrap-session (-> session-manager? (-> (-> request? response?) (-> request? response?)))]))
 
 (define (((wrap-session sm) handler) req)
-  (define store (session-manager-store sm))
-  (define session-id
-    (or (request-id-cookie req
-                           #:name (session-manager-cookie-name sm)
-                           #:key (session-manager-secret-key sm)
-                           #:shelf-life (session-manager-shelf-life sm))
-        (session-store-generate-id store)))
+  (with-timing 'session "wrap-session"
+    (define store (session-manager-store sm))
+    (define session-id
+      (or (request-id-cookie req
+                             #:name (session-manager-cookie-name sm)
+                             #:key (session-manager-secret-key sm)
+                             #:shelf-life (session-manager-shelf-life sm))
+          (session-store-generate-id store)))
 
-  (parameterize ([current-session-id session-id])
-    (define cookie
-      (make-id-cookie (session-manager-cookie-name sm) session-id
-                      #:path "/"
-                      #:key (session-manager-secret-key sm)
-                      #:max-age (session-manager-shelf-life sm)))
+    (parameterize ([current-session-id session-id])
+      (define cookie
+        (make-id-cookie (session-manager-cookie-name sm) session-id
+                        #:path "/"
+                        #:key (session-manager-secret-key sm)
+                        #:max-age (session-manager-shelf-life sm)))
 
-    (define resp (handler req))
-    (define headers
-      (cons (cookie->header cookie)
-            (response-headers resp)))
+      (define resp (handler req))
+      (define headers
+        (cons (cookie->header cookie)
+              (response-headers resp)))
 
-    (struct-copy response resp [headers headers])))
+      (struct-copy response resp [headers headers]))))

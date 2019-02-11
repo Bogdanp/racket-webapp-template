@@ -4,6 +4,7 @@
          racket/contract/base
          racket/function
          web-server/http
+         "profiler.rkt"
          "session.rkt")
 
 ;; Flash manager ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -42,12 +43,13 @@
   [wrap-flash (-> flash-manager? (-> (-> request? response?) (-> request? response?)))]))
 
 (define (((wrap-flash fm) handler) req)
-  (define sessions (flash-manager-session-manager fm))
-  (define flash-messages (session-manager-ref sessions flash-messages-key null))
-  (session-manager-remove! sessions flash-messages-key)
+  (with-timing 'flash "wrap-flash"
+    (define sessions (flash-manager-session-manager fm))
+    (define flash-messages (session-manager-ref sessions flash-messages-key null))
+    (session-manager-remove! sessions flash-messages-key)
 
-  (parameterize ([current-flash-messages flash-messages])
-    (handler req)))
+    (parameterize ([current-flash-messages flash-messages])
+      (handler req))))
 
 (module+ test
   (require racket/file

@@ -8,7 +8,8 @@
          gregor
          racket/class
          racket/contract
-         racket/match)
+         racket/match
+         "profiler.rkt")
 
 (provide
  (contract-out
@@ -72,19 +73,26 @@
                        'max-idle-connections max-idle-connections)))
 
 (define (call-with-database-connection database proc)
-  (define pool (database-connection-pool database))
-  (define connection (connection-pool-lease pool))
-  (dynamic-wind
-    (lambda () #f)
-    (lambda () (proc connection))
-    (lambda () (disconnect connection))))
+  (with-timing 'database "call-with-database-connection"
+    (define pool (database-connection-pool database))
+    (define connection
+      (with-timing "connection-pool-lease"
+        (connection-pool-lease pool)))
+
+    (dynamic-wind
+      (lambda () #f)
+      (lambda ()
+        (with-timing "proc" (proc connection)))
+      (lambda ()
+        (with-timing "disconnect" (disconnect connection))))))
 
 (define (call-with-database-transaction database proc #:isolation [isolation #f])
-  (with-database-connection [conn database]
-    (call-with-transaction conn
-      #:isolation isolation
-      (lambda ()
-        (proc conn)))))
+  (with-timing 'database "call-with-database-transaction"
+    (with-database-connection [conn database]
+      (call-with-transaction conn
+        #:isolation isolation
+        (lambda ()
+          (proc conn))))))
 
 (define-syntax-rule (with-database-connection [name database] e ...)
   (call-with-database-connection database

@@ -1,0 +1,105 @@
+.uprofiler-content {
+  position: fixed;
+  bottom: 10px;
+  left: 15px;
+  box-shadow: 0 0 10px 2px rgba(0, 0, 0, 0.2);
+  font-size: 1rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.uprofiler-toggle {
+  display: none;
+}
+
+.uprofiler-label {
+  display: block;
+  background: coral;
+  padding: 6px 12px;
+  color: #fff;
+  font-family: courier;
+}
+
+.uprofiler-timings {
+  display: none;
+  background: #fff;
+  border: 1px solid #aaa;
+  padding: 6px 12px;
+  color: #000;
+}
+
+.uprofiler-close {
+  display: block;
+  padding: 6px 12px;
+  margin: 0 0 6px 0;
+  background: #000;
+  color: #fff;
+  font-family: courier;
+  font-size: 0.8rem;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.uprofiler-toggle:checked ~ .uprofiler-label {
+  display: none;
+}
+
+.uprofiler-toggle:checked ~ .uprofiler-timings {
+  display: block;
+}
+
+.uprofiler-timing {
+  display: block;
+  margin: 0 0 0 10px;
+  padding: 6px 0 0 6px;
+  border: 1px solid transparent;
+  border-bottom: 2px solid transparent;
+
+  &:hover {
+    background: rgba(darkblue, 0.02);
+    border-color: black;
+  }
+
+  &-label,
+  &-duration,
+  &-description {
+    margin-right: 5px;
+  }
+
+  &-label {
+    font-weight: bold;
+
+    &:before {
+      content: "▶ ";
+    }
+  }
+
+  &-duration {
+    color: darkblue;
+    font-family: courier;
+    font-weight: bold;
+  }
+
+  &-description {
+    display: inline-block;
+  }
+
+  &-toggle {
+    display: none;
+  }
+
+  .uprofiler-timing {
+    display: none;
+  }
+
+  &-toggle:checked ~ .uprofiler-timing-label:before {
+    content: "▼ ";
+  }
+
+  &-toggle:checked ~ .uprofiler-timing {
+    display: block;
+  }
+}
+
+.uprofiler-timings > .uprofiler-timing {
+  margin: 0;
+}
