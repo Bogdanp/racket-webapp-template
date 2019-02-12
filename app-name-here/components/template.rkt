@@ -22,7 +22,7 @@
          [static-path (simplify-path (build-path current-dir 'up 'up "static"))])
     (map (lambda (p)
            (find-relative-path static-path p))
-         (find-files (compose not directory-exists?) static-path))))
+         (find-files (compose1 not directory-exists?) static-path))))
 
 (define-syntax (static-uri stx)
   (syntax-parse stx
