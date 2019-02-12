@@ -6,8 +6,7 @@
          racket/match
          racket/rerequire
          racket/set
-         racket/string
-         racket/system)
+         racket/string)
 
 (provide
  start-reloader
@@ -100,6 +99,5 @@
              (append dependents* mods))])))
 
 (define (touch-dependents root mod)
-  (define dependents (find-dependents root mod))
-  (unless (null? dependents)
-    (apply system*/exit-code "/usr/bin/touch" dependents)))
+  (for ([path (find-dependents root mod)])
+    (file-or-directory-modify-seconds path (current-seconds))))
