@@ -224,7 +224,8 @@
 
 (provide
  (contract-out
-  [wrap-session (-> session-manager? (-> (-> request? response?) (-> request? response?)))]))
+  [wrap-session (-> session-manager? (-> (-> request? response?)
+                                         (-> request? response?)))]))
 
 (define (((wrap-session sm) handler) req)
   (with-timing 'session "wrap-session"
