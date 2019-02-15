@@ -1,6 +1,7 @@
 #lang racket/base
 
-(require racket/file
+(require racket/contract/base
+         racket/file
          racket/function
          racket/list
          racket/match
@@ -9,8 +10,9 @@
          racket/string)
 
 (provide
- start-reloader
- touch-dependents)
+ (contract-out
+  [start-reloader (->* (#:path path-string?
+                        #:handler (-> path-string? any/c)) thread?)]))
 
 (define-logger reloader)
 
@@ -82,6 +84,10 @@
              (hash-update dependents dependency (curry cons mod) null)))
 
          (loop dependents* (append mods dependencies) (set-add seen mod)))])))
+
+(provide
+ (contract-out
+  [touch-dependents (-> path-string? path-string? void?)]))
 
 (define (find-dependents root mod)
   (define dependents-tree
