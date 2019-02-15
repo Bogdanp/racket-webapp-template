@@ -53,7 +53,7 @@
 (define (nav-item uri label)
   `(li
     ((class "nav__item"))
-    (a ((href ,uri)) ,label)))
+    (a ((href ,uri) (up-target "body")) ,label)))
 
 (define (render-page #:subtitle [subtitle #f]
                      #:show-nav? [show-nav? #t]
@@ -72,7 +72,8 @@
           ,(if subtitle
                (~a subtitle " - AppNameHere")
                "AppNameHere"))
-         (link ((rel "stylesheet") (href ,(static-uri "css/screen.css")))))
+         (link ((rel "stylesheet") (href ,(static-uri "css/screen.css"))))
+         (link ((rel "stylesheet") (href ,(static-uri "vendor/unpoly.min.css")))))
         (body
          ,@(xexpr-when show-nav?
              (if (current-user)
@@ -91,7 +92,11 @@
                       ((class ,(format "flash__item flash__item--~a" (car flash))))
                       ,(cdr flash))))))
 
-         ,@content)))
+         (div
+          ((class "content"))
+          ,@content)
+
+         (script ((src ,(static-uri "vendor/unpoly.min.js")))))))
 
     (response
      200
