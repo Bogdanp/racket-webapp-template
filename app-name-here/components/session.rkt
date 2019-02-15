@@ -5,6 +5,7 @@
          racket/contract/base
          racket/function
          racket/generic
+         racket/serialize
          struct-plus-plus
          threading
          web-server/http
@@ -43,13 +44,13 @@
          (lambda ()
            (define sessions (read))
            (unless (eof-object? sessions)
-             (set-box! (memory-session-store-data ss) sessions))))))
+             (set-box! (memory-session-store-data ss) (deserialize sessions)))))))
 
    (define (session-store-persist! ss)
      (with-output-to-file (memory-session-store-file-path ss)
        #:exists 'truncate/replace
        (lambda ()
-         (write (unbox (memory-session-store-data ss))))))
+         (write (serialize (unbox (memory-session-store-data ss)))))))
 
    (define (session-store-ref ss session-id key default)
      (and~> (unbox (memory-session-store-data ss))
