@@ -8,11 +8,10 @@
                "forms-lib"
                "gregor-lib"
                "libuuid"
-               "net-cookies-lib"
                "north"
                "postmark-client"
                "sql"
-               "srfi-lib"
+               "srfi-lite-lib"
                "struct-plus-plus"
                "threading-lib"
                "web-server-lib"))
