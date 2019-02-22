@@ -7,7 +7,8 @@
 
 (provide
  current-preload-dependencies
- make-preload-headers)
+ make-preload-headers
+ wrap-preload)
 
 (define current-preload-dependencies
   (make-parameter null))
@@ -26,3 +27,8 @@
   (with-timing 'preload "make-preload-headers"
     (for/list ([path (current-preload-dependencies)])
       (header #"Link" (string->bytes/utf-8 (format "<~a>; rel=preload; as=~a" path (path->preload-as path)))))))
+
+(define ((wrap-preload handler) req)
+  (with-timing 'preload "wrap-preload"
+    (parameterize ([current-preload-dependencies null])
+      (handler req))))

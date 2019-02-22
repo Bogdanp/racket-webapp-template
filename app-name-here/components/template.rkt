@@ -55,16 +55,16 @@
     ((class "nav__item"))
     (a ((href ,uri) (up-target "body")) ,label)))
 
-(define (render-page #:subtitle [subtitle #f]
-                     #:show-nav? [show-nav? #t]
-                     . content)
+(define (page #:subtitle [subtitle #f]
+              #:show-nav? [show-nav? #t]
+              . content)
 
   ;; Write-profile is called inside a different thread so we have to
   ;; grab the current profile here and then pass it in to ensure that
   ;; the right profile gets rendered.
   (define profile (current-profile))
 
-  (with-timing 'template "render-page"
+  (with-timing 'template "page"
     (define page
       `(html
         (head
@@ -109,9 +109,3 @@
          (displayln "<!doctype html>")
          (write-xml/content (xexpr->xml page))
          (write-profile profile))))))
-
-(define-syntax (page stx)
-  (syntax-parse stx
-    ([_ e ...+]
-     #'(parameterize ([current-preload-dependencies null])
-         (render-page e ...)))))

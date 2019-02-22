@@ -27,6 +27,7 @@
          "page/auth.rkt"
          "page/common.rkt"
          "page/dashboard.rkt"
+         "preload.rkt"
          "profiler.rkt"
          "session.rkt"
          "user.rkt")
@@ -56,38 +57,44 @@
    (define component-stop identity)])
 
 (define (make-app auth db flashes mailer sessions users)
+  (define (anon-stack handler)
+    (~> handler
+        (wrap-browser-locale)
+        ((wrap-flash flashes))
+        ((wrap-session sessions))
+        (wrap-preload)
+        (wrap-profiler)))
+
+  (define (auth-stack handler)
+    (~> handler
+        (wrap-browser-locale)
+        ((wrap-auth-required auth))
+        ((wrap-flash flashes))
+        ((wrap-session sessions))
+        (wrap-preload)
+        (wrap-profiler)))
+
   (define manager
-    (make-threshold-LRU-manager (~> (expired-page flashes)
-                                    (wrap-browser-locale)
-                                    ((wrap-flash flashes))
-                                    ((wrap-session sessions))) (* 1024 1024 128)))
+    (make-threshold-LRU-manager (anon-stack (expired-page flashes)) (* 1024 1024 128)))
 
-  (define-values (dispatch-main reverse-main-uri)
-    (dispatch-rules
-     [("") dashboard-page]))
-
-  (define-values (dispatch-auth reverse-auth-uri)
+  (define-values (dispatch-anon reverse-auth-uri)
     (dispatch-rules
      [("login") (login-page auth)]
      [("logout") (logout-page auth)]
      [("signup") (signup-page auth mailer users)]
      [("verify" (integer-arg) (string-arg)) (verify-page flashes users)]))
 
+  (define-values (dispatch-auth reverse-main-uri)
+    (dispatch-rules
+     [("") dashboard-page]))
+
   (app (sequencer:make
         (filter:make #rx"^/static/.+$" static-dispatcher)
         (dispatch/servlet
          #:manager manager
-         (~> dispatch-auth
-             (wrap-browser-locale)
-             ((wrap-flash flashes))
-             ((wrap-session sessions))
-             (wrap-profiler)))
+         (anon-stack dispatch-anon))
         (dispatch/servlet
          #:manager manager
-         (~> dispatch-main
-             (wrap-browser-locale)
-             ((wrap-auth-required auth))
-             ((wrap-flash flashes))
-             ((wrap-session sessions))
-             (wrap-profiler)))
-        (dispatch/servlet not-found-page))))
+         (auth-stack dispatch-auth))
+        (dispatch/servlet
+         (anon-stack not-found-page)))))
