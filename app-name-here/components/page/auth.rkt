@@ -138,7 +138,7 @@
         (with-handlers ([exn:fail:user-manager:username-taken?
                          (lambda _
                            (render render-widget (translate 'error-username-taken)))])
-          (define user (user-manager-create-user users username password))
+          (define user (user-manager-create! users username password))
           (mailer-send-welcome-email mailer user)
           (post-signup-page (redirect/get/forget)))]
 

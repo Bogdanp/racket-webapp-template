@@ -68,7 +68,7 @@
  user-manager?
  user-manager-lookup/id
  user-manager-lookup/username
- user-manager-create-user
+ user-manager-create!
  user-manager-login
  user-manager-verify)
 
@@ -81,7 +81,7 @@
   [(define component-start identity)
    (define component-stop identity)])
 
-(define/contract (user-manager-create-user um username password)
+(define/contract (user-manager-create! um username password)
   (-> user-manager? string? string? user?)
   (define user (set-user-password (user++ #:id #f #:username username) password))
   (define id
@@ -165,11 +165,11 @@
       (system-stop test-system))
 
     (test-suite
-     "user-manager-create-user"
+     "user-manager-create!"
 
      (test-case "creates users"
        (check-match
-        (user-manager-create-user (system-get test-system 'user-manager) "bogdan" "hunter2")
+        (user-manager-create! (system-get test-system 'user-manager) "bogdan" "hunter2")
         (user (? exact-positive-integer?) "bogdan" _ #f _ _ _))))
 
     (test-suite

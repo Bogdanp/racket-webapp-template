@@ -87,7 +87,7 @@
         (query-exec conn "truncate table users"))
 
       (define users (system-get test-system 'users))
-      (user-manager-create-user users "bogdan" "hunter2"))
+      (user-manager-create! users "bogdan" "hunter2"))
 
     #:after
     (lambda _
