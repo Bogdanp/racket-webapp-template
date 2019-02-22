@@ -1,12 +1,10 @@
 #lang racket/base
 
 (require (for-syntax racket/base
-                     syntax/parse
-                     (prefix-in config: "../config.rkt"))
+                     syntax/parse)
          net/url
          racket/contract/base
          racket/format
-         racket/function
          racket/match
          web-server/http
          xml
@@ -94,12 +92,12 @@
 (define-syntax (with-timing stx)
   (syntax-parse stx
     [(_ label description e ...+)
-     (if config:profile
-         #'(time
-            #:label label
-            #:description description
-            (lambda () e ...))
-         #'(begin e ...))]
+     #'(let ([f (lambda () e ...)])
+         (cond
+           [config:profile
+            (time #:label label #:description description f)]
+
+           [else (f)]))]
 
     [(_ description e ...+)
      #'(with-timing (current-profile-label) description
