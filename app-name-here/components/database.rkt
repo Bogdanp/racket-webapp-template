@@ -1,13 +1,11 @@
 #lang racket/base
 
 (require (for-syntax racket/base
-                     racket/syntax
                      syntax/parse)
          component
          db
          gregor
-         racket/class
-         racket/contract
+         racket/contract/base
          racket/match
          "profiler.rkt")
 
