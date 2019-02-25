@@ -3,8 +3,8 @@
 (require forms
          racket/contract/base
          racket/match
+         threading
          web-server/servlet
-
          "../auth.rkt"
          "../flash.rkt"
          "../l10n.rkt"
@@ -62,28 +62,34 @@
        ,(translate 'action-sign-up-no-account))))
 
 (define ((login-page auth) req)
-  (send/suspend/dispatch
-   (lambda (embed/url)
-     (define (render render-widget [error-message #f])
-       (page
-        #:subtitle "Log in"
-        (container
-         (render-login-form (embed/url (login-page auth)) render-widget error-message))))
+  (define return-url
+    (and~> (bindings-assq #"return" (request-bindings/raw req))
+           (binding:form-value)
+           (bytes->string/utf-8)))
 
-     (match (form-run login-form req)
-       [(list 'passed (list username password) render-widget)
-        (with-handlers ([exn:fail:auth-manager:unverified?
-                         (lambda _
-                           (render render-widget (translate 'error-verify-email)))])
-          (cond
-            [(auth-manager-login! auth username password)
-             (redirect-to "/")]
+  (let loop ([req req])
+    (send/suspend/dispatch
+     (lambda (embed/url)
+       (define (render render-widget [error-message #f])
+         (page
+          #:subtitle "Log in"
+          (container
+           (render-login-form (embed/url loop) render-widget error-message))))
 
-            [else
-             (render render-widget (translate 'error-invalid-credentials))]))]
+       (match (form-run login-form req)
+         [(list 'passed (list username password) render-widget)
+          (with-handlers ([exn:fail:auth-manager:unverified?
+                           (lambda _
+                             (render render-widget (translate 'error-verify-email)))])
+            (cond
+              [(auth-manager-login! auth username password)
+               (redirect-to (or return-url "/"))]
 
-       [(list _ _ render-widget)
-        (render render-widget)]))))
+              [else
+               (render render-widget (translate 'error-invalid-credentials))]))]
+
+         [(list _ _ render-widget)
+          (render render-widget)])))))
 
 (define ((logout-page auth) req)
   (auth-manager-logout! auth)
