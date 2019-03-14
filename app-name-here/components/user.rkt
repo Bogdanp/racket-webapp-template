@@ -38,8 +38,8 @@
    [(password-hash #f) (or/c false/c non-empty-string?)]
    [(verified? #f) boolean?]
    [(verification-code (generate-verification-code)) non-empty-string?]
-   [(created-at (now)) moment?]
-   [(updated-at (now)) moment?])
+   [(created-at (now/moment)) moment?]
+   [(updated-at (now/moment)) moment?])
   #:transparent)
 
 (define (generate-verification-code [strength 8192])
