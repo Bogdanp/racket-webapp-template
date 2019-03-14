@@ -111,7 +111,7 @@
                                                   created_at updated_at
                                                   #:from users
                                                   #:where where-clause)))])
-         (and row (apply user (vector->list row))))]))
+         (and row (apply user (row->list row))))]))
 
 (define/contract (user-manager-lookup/id um id)
   (-> user-manager? exact-positive-integer? (or/c false/c user?))

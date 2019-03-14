@@ -4,6 +4,7 @@
                      syntax/parse)
          component
          db
+         db/util/postgresql
          gregor
          racket/contract/base
          racket/match
@@ -30,6 +31,8 @@
                                                           false/c))
                                        any/c)]
   [exn:fail:sql:constraint-violation? (-> any/c boolean?)]
+  [sql-> (-> any/c any/c)]
+  [row->list (-> vector? list?)]
   [->sql-date (-> time-provider? sql-date?)]
   [->sql-timestamp (-> time-provider? sql-timestamp?)])
 
@@ -114,6 +117,32 @@
   (match-lambda
     [(exn:fail:sql _ _ (or "23503" "23505") _) #t]
     [_ #f]))
+
+(define (row->list row)
+  (for/list ([c (in-vector row)])
+    (sql-> c)))
+
+(define (sql-> v)
+  (cond
+    [(sql-null? v) #f]
+
+    [(pg-array? v)
+     (pg-array->list v)]
+
+    [(sql-timestamp? v)
+     (sql-timestamp->moment v)]
+
+    [else v]))
+
+(define (sql-timestamp->moment t)
+  (moment (sql-timestamp-year t)
+          (sql-timestamp-month t)
+          (sql-timestamp-day t)
+          (sql-timestamp-hour t)
+          (sql-timestamp-minute t)
+          (sql-timestamp-second t)
+          (sql-timestamp-nanosecond t)
+          #:tz (or (sql-timestamp-tz t) (current-timezone))))
 
 (define (->sql-date m)
   (sql-date (->year m) (->month m) (->day m)))
