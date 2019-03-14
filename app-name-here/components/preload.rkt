@@ -25,7 +25,7 @@
 
 (define (make-preload-headers)
   (with-timing 'preload "make-preload-headers"
-    (for/list ([path (current-preload-dependencies)])
+    (for/list ([path (current-preload-dependencies)] #:when (path->preload-as path))
       (header #"Link" (string->bytes/utf-8 (format "<~a>; rel=preload; as=~a" path (path->preload-as path)))))))
 
 (define ((wrap-preload handler) req)
