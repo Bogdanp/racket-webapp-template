@@ -112,7 +112,7 @@
 
 (define exn:fail:sql:constraint-violation?
   (match-lambda
-    [(exn:fail:sql _ _ "23505" _) #t]
+    [(exn:fail:sql _ _ (or "23503" "23505") _) #t]
     [_ #f]))
 
 (define (->sql-date m)
