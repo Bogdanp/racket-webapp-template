@@ -54,3 +54,14 @@
                                   #:secret-key config:session-secret-key
                                   #:store (make-memory-session-store))]
   [users (db) user-manager])
+
+(module+ main
+  (require "logging.rkt")
+
+  (void (start-logger))
+  (start)
+
+  (with-handlers ([exn:break? (lambda (e)
+                                (stop)
+                                (sync/enable-break (system-idle-evt)))])
+    (sync/enable-break never-evt)))

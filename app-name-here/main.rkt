@@ -46,6 +46,9 @@
                       (set! stop (dynamic-require dynamic-module-path 'stop)))
                     (start))))))
 
+  ;; NOTE: Any changes you make here you must also make to the main
+  ;; submodule of dynamic.rkt if you want to support `raco exe` and `raco
+  ;; distribute`-style distributions.
   (with-handlers ([exn:break? (lambda (e)
                                 (stop)
                                 (sync/enable-break (system-idle-evt)))])
