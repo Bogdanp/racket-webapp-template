@@ -1,20 +1,18 @@
 #lang racket/base
 
-(require racket/runtime-path)
-
-(define-runtime-path here ".")
-
 (module+ main
   (require racket/rerequire
            racket/file
            racket/function
+           racket/path
            racket/string
            (prefix-in config: "config.rkt")
            "logging.rkt"
            "reloader.rkt")
 
+  (define package-path (path-only (syntax-source #'0)))
   (define dynamic-module-path
-    (simplify-path (build-path here "dynamic.rkt")))
+    (simplify-path (build-path package-path "dynamic.rkt")))
 
   (when config:debug
     (void (dynamic-rerequire dynamic-module-path)))
@@ -28,7 +26,7 @@
   (when config:debug
     (void
      (start-reloader
-      #:path here
+      #:path package-path
       #:handler (lambda (changed-path)
                   (with-handlers ([exn:fail?
                                    (lambda (e)
