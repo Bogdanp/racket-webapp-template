@@ -21,7 +21,11 @@
   (define stop (dynamic-require dynamic-module-path 'stop))
 
   (void (start-logger))
-  (start)
+
+  (define top-custodian (current-custodian))
+  (define app-custodian (make-custodian top-custodian))
+  (parameterize ([current-custodian app-custodian])
+    (start))
 
   (when config:debug
     (void
@@ -42,10 +46,14 @@
                       (dynamic-rerequire dynamic-module-path)
                       (set! start (dynamic-require dynamic-module-path 'start))
                       (set! stop (dynamic-require dynamic-module-path 'stop)))
-                    (start))))))
+
+                    (custodian-shutdown-all app-custodian)
+                    (set! app-custodian (make-custodian top-custodian))
+                    (parameterize ([current-custodian app-custodian])
+                      (start)))))))
 
   ;; NOTE: Any changes you make here you must also make to the main
-  ;; submodule of dynamic.rkt if you want to support `raco exe` and `raco
+  ;; submodule of dynamic.rkt to support `raco exe` and `raco
   ;; distribute`-style distributions.
   (with-handlers ([exn:break? (lambda (e)
                                 (stop)

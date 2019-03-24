@@ -5,6 +5,7 @@
          racket/function
          racket/list
          racket/match
+         racket/path
          racket/rerequire
          racket/set
          racket/string)
@@ -17,30 +18,29 @@
 (define-logger reloader)
 
 (define (track-file? p)
-  (define-values (folder filename _) (split-path p))
-  (and (not (directory-exists? p))
-       (not (string-prefix? (path->string filename) "."))))
+  (equal? (path-get-extension p) #".rkt"))
 
 (define (watch path handler)
   (define (collect-tracked-files)
     (map simplify-path (find-files track-file? path)))
 
   (let loop ([tracked-files (collect-tracked-files)])
-    (sync
-     (handle-evt
-      (filesystem-change-evt path)
-      (lambda (e)
-        (loop (collect-tracked-files))))
+    (parameterize ([current-custodian (make-custodian)])
+      (sync
+       (handle-evt
+        (filesystem-change-evt path)
+        (lambda (e)
+          (loop (collect-tracked-files))))
 
-     (handle-evt
-      (apply choice-evt (filter-map
-                         (lambda (p)
-                           (and (file-exists? p)
-                                (handle-evt (filesystem-change-evt p) (const p))))
-                         tracked-files))
-      (lambda (p)
-        (handler p)
-        (loop tracked-files))))))
+       (handle-evt
+        (apply choice-evt (filter-map
+                           (lambda (p)
+                             (and (file-exists? p)
+                                  (handle-evt (filesystem-change-evt p) (const p))))
+                           tracked-files))
+        (lambda (p)
+          (handler p)
+          (loop tracked-files)))))))
 
 (define (start-reloader #:path path
                         #:handler handler)
