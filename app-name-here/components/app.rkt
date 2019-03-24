@@ -19,6 +19,7 @@
          web-server/managers/lru
          web-server/servlet-dispatch
          "auth.rkt"
+         "continuation.rkt"
          "database.rkt"
          "flash.rkt"
          "http.rkt"
@@ -79,6 +80,7 @@
         (wrap-browser-locale)
         ((wrap-flash flashes))
         ((wrap-session sessions))
+        (wrap-protect-continuations)
         (wrap-preload)
         (wrap-profiler)))
 
@@ -89,6 +91,7 @@
         ((wrap-auth-required auth))
         ((wrap-flash flashes))
         ((wrap-session sessions))
+        (wrap-protect-continuations)
         (wrap-preload)
         (wrap-profiler)
         ((wrap-applies applies-to-auth?))))
