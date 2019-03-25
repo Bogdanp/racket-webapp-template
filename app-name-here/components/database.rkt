@@ -8,6 +8,7 @@
          gregor
          racket/contract/base
          racket/match
+         racket/sequence
          "profiler.rkt")
 
 (provide
@@ -33,6 +34,7 @@
   [exn:fail:sql:constraint-violation? (-> any/c boolean?)]
   [sql-> (-> any/c any/c)]
   [row->list (-> vector? list?)]
+  [in-rows (-> connection? statement? any/c ... sequence?)]
   [->sql-date (-> time-provider? sql-date?)]
   [->sql-timestamp (-> time-provider? sql-timestamp?)])
 
@@ -117,6 +119,12 @@
   (match-lambda
     [(exn:fail:sql _ _ (or "23503" "23505") _) #t]
     [_ #f]))
+
+(define (in-rows conn stmt . args)
+  (sequence-map row->values (apply in-query conn stmt args)))
+
+(define (row->values . cols)
+  (apply values (map sql-> cols)))
 
 (define (row->list row)
   (for/list ([c (in-vector row)])
