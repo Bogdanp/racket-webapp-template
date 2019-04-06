@@ -5,6 +5,8 @@
          racket/function
          web-server/http
          web-server/managers/manager
+         web-server/servlet/servlet-structs
+         web-server/servlet/web
          "profiler.rkt")
 
 ;; The main advantage to using continuations in a web context is that
@@ -20,7 +22,9 @@
 (provide
  current-continuation-mismatch-handler
  protect-continuation
- wrap-protect-continuations)
+ wrap-protect-continuations
+
+ send/suspend/dispatch/protect)
 
 (define continuation-key-cookie-name "_k")
 
@@ -73,6 +77,12 @@
       (struct-copy response the-response [headers (cons
                                                    (cookie->header the-cookie)
                                                    (response-headers the-response))]))))
+
+(define/contract (send/suspend/dispatch/protect f)
+  (-> (-> (-> (-> request? any) string?) can-be-response?) any)
+  (send/suspend/dispatch
+   (lambda (embed/url)
+     (f (compose1 embed/url protect-continuation)))))
 
 (module+ test
   (require racket/match
