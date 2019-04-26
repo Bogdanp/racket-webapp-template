@@ -47,8 +47,8 @@
   [mailer (make-mailer #:adapter mail-adapter
                        #:sender config:support-email
                        #:common-variables common-mail-variables)]
-  [server (app) (make-server #:host config:http-host
-                             #:port config:http-port)]
+  [server (app) (compose1 (make-server #:host config:http-host
+                                       #:port config:http-port) app-dispatcher)]
   [sessions (make-session-manager #:cookie-name config:session-cookie-name
                                   #:shelf-life config:session-shelf-life
                                   #:secret-key config:session-secret-key

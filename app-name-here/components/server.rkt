@@ -1,38 +1,48 @@
 #lang racket/base
 
 (require component
-         racket/contract/base
-         web-server/web-server
-         "app.rkt")
+         racket/contract
+         racket/string
+         struct-plus-plus
+         web-server/dispatchers/dispatch
+         web-server/web-server)
 
 (provide
- (contract-out
-  [server? (-> any/c boolean?)]
-  [make-server (->* ()
-                    (#:host string?
-                     #:port (integer-in 0 65535))
-                    (-> app? server?))]))
+ make-server
+ server?)
 
 (define-logger server)
 
-(struct server (options app stopper)
+(define port/c (integer-in 0 65534))
+
+(struct++ server
+  ([host non-empty-string?]
+   [port port/c]
+   [dispatcher dispatcher/c]
+   [(stopper #f) (or/c false/c (-> void?))])
+  #:transparent
   #:methods gen:component
   [(define (component-start a-server)
-     (define options (server-options a-server))
-     (define stopper (serve #:dispatch (app-dispatcher (server-app a-server))
-                            #:listen-ip (hash-ref options 'host)
-                            #:port (hash-ref options 'port)))
+     (define stopper
+       (serve #:dispatch (server-dispatcher a-server)
+              #:listen-ip (server-host a-server)
+              #:port (server-port a-server)))
 
      (log-server-info "listening on ~a:~a"
-                      (hash-ref options 'host)
-                      (hash-ref options 'port))
-     (struct-copy server a-server [stopper stopper]))
+                      (server-host a-server)
+                      (server-port a-server))
+     (set-server-stopper a-server stopper))
 
    (define (component-stop a-server)
      ((server-stopper a-server))
-     (struct-copy server a-server [stopper #f]))])
+     (set-server-stopper a-server #f))])
 
-(define ((make-server #:host [host "127.0.0.1"]
-                      #:port [port 8000]) app)
-  (server (hasheq 'host host
-                  'port port) app #f))
+(define/contract ((make-server #:host [host "127.0.0.1"]
+                               #:port [port 8000]) dispatcher)
+  (->* ()
+       (#:host non-empty-string?
+        #:port port/c)
+       (-> dispatcher/c server?))
+  (server++ #:host host
+            #:port port
+            #:dispatcher dispatcher))
