@@ -33,7 +33,7 @@
     ))
 
 (struct++ user
-  ([id (or/c false/c exact-positive-integer?)]
+  ([id maybe-id/c]
    [username non-empty-string? string-downcase]
    [(password-hash #f) (or/c false/c non-empty-string?)]
    [(verified? #f) boolean?]
