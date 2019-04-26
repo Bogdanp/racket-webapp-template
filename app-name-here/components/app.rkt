@@ -20,6 +20,7 @@
          web-server/servlet-dispatch
          "auth.rkt"
          "continuation.rkt"
+         "cors.rkt"
          "database.rkt"
          "flash.rkt"
          "http.rkt"
@@ -82,6 +83,7 @@
         ((wrap-session sessions))
         (wrap-protect-continuations)
         (wrap-preload)
+        (wrap-cors)
         (wrap-profiler)))
 
   ;; Ditto.
@@ -93,6 +95,7 @@
         ((wrap-session sessions))
         (wrap-protect-continuations)
         (wrap-preload)
+        (wrap-cors)
         (wrap-profiler)
         ((wrap-applies applies-to-auth?))))
 
