@@ -24,7 +24,11 @@
  protect-continuation
  wrap-protect-continuations
 
- send/suspend/dispatch/protect)
+ send/suspend/protect
+ send/forward/protect
+ send/suspend/dispatch/protect
+ redirect/get/protect
+ redirect/get/forget/protect)
 
 (define continuation-key-cookie-name "_k")
 
@@ -47,19 +51,23 @@
 
     [else #f]))
 
-(define/contract ((protect-continuation k) req)
-  (-> (-> request? response?) (-> request? response?))
-  (with-timing 'continuation "protect-continuation"
+(define/contract (protect-request req)
+  (-> request? request?)
+  (with-timing 'continuation "protect-request"
     (cond
       [(equal? (find-continuation-key (request-cookies req))
                (current-continuation-key))
-       (k req)]
+       req]
 
       [else
        (raise (make-exn:fail:servlet-manager:no-instance
                "Continuation key mismatch."
                (current-continuation-marks)
                (current-continuation-mismatch-handler)))])))
+
+(define/contract ((protect-continuation k) req)
+  (-> (-> request? response?) (-> request? response?))
+  (k (protect-request req)))
 
 (define/contract ((wrap-protect-continuations handler) req)
   (-> (-> request? response?) (-> request? response?))
@@ -78,11 +86,31 @@
                                                    (cookie->header the-cookie)
                                                    (response-headers the-response))]))))
 
+(define/contract (send/suspend/protect f)
+  (-> (-> string? can-be-response?) request?)
+  (protect-request (send/suspend f)))
+
+(define/contract (send/forward/protect f)
+  (-> (-> string? can-be-response?) request?)
+  (protect-request (send/forward f)))
+
 (define/contract (send/suspend/dispatch/protect f)
   (-> (-> (-> (-> request? any) string?) can-be-response?) any)
   (send/suspend/dispatch
    (lambda (embed/url)
      (f (compose1 embed/url protect-continuation)))))
+
+(define/contract (redirect/get/protect #:headers [hs null])
+  (->* () (#:headers (listof header?)) request?)
+  (send/suspend/protect
+   (lambda (k-url)
+     (redirect-to k-url #:headers hs))))
+
+(define/contract (redirect/get/forget/protect #:headers [hs null])
+  (->* () (#:headers (listof header?)) request?)
+  (send/forward/protect
+   (lambda (k-url)
+     (redirect-to k-url #:headers hs))))
 
 (module+ test
   (require racket/match
