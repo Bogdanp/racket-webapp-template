@@ -1,0 +1,11 @@
+#!/usr/bin/env racket
+#lang racket/base
+
+(require component
+         racket/file
+         racket/system
+         "../app-name-here/dynamic.rkt")
+
+(define png (make-temporary-file "system-graph-~a.png"))
+(system->png prod-system png)
+(system* (find-executable-path "open") png)

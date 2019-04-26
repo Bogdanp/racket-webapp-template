@@ -14,7 +14,10 @@
          "components/url.rkt"
          (prefix-in config: "config.rkt"))
 
-(provide start stop)
+(provide
+ prod-system
+ start
+ stop)
 
 (define (start)
   (system-start prod-system))
