@@ -216,7 +216,9 @@
 
 (define/contract (->sql-date m)
   (-> time-provider? sql-date?)
-  (sql-date (->year m) (->month m) (->day m)))
+  (sql-date (->year m)
+            (->month m)
+            (->day m)))
 
 (define/contract (->sql-timestamp m)
   (-> time-provider? sql-timestamp?)
@@ -227,4 +229,4 @@
                  (->minutes m)
                  (->seconds m)
                  (->nanoseconds m)
-                 #f))
+                 (->utc-offset m)))

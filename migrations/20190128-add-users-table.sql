@@ -9,8 +9,8 @@ create table users(
   password_hash text not null,
   verified boolean not null default false,
   verification_code text not null,
-  created_at timestamp not null default current_timestamp,
-  updated_at timestamp not null default current_timestamp,
+  created_at timestamptz not null default current_timestamp,
+  updated_at timestamptz not null default current_timestamp,
 
   constraint users_username_is_lowercase check(username = lower(username))
 );
