@@ -78,7 +78,7 @@
   ;; Requests go up (starting from the last wrapper) and respones go down!
   (define (anon-stack handler)
     (~> handler
-        (wrap-browser-locale)
+        ((wrap-browser-locale sessions))
         ((wrap-flash flashes))
         ((wrap-session sessions))
         (wrap-protect-continuations)
@@ -89,7 +89,7 @@
   ;; Ditto.
   (define (auth-stack handler)
     (~> handler
-        (wrap-browser-locale)
+        ((wrap-browser-locale sessions))
         ((wrap-auth-required auth))
         ((wrap-flash flashes))
         ((wrap-session sessions))
