@@ -40,7 +40,7 @@
 
 (define-system prod
   [app (auth db flashes mailer sessions users) make-app]
-  [auth (sessions users) auth-manager]
+  [auth (sessions users) make-auth-manager]
   [db (make-database #:database config:db-name
                      #:username config:db-username
                      #:password config:db-password

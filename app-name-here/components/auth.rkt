@@ -2,9 +2,10 @@
 
 (require component
          net/url
-         racket/contract/base
+         racket/contract
          racket/function
          racket/match
+         racket/string
          threading
          web-server/http
          "profiler.rkt"
@@ -13,17 +14,20 @@
          "user.rkt")
 
 (provide
- (contract-out
-  [exn:fail:auth-manager? (-> any/c boolean?)]
-  [exn:fail:auth-manager:unverified? (-> any/c boolean?)]
-  [current-user (parameter/c (or/c false/c user?))]
-  [struct auth-manager ([session-manager session-manager?]
-                        [user-manager user-manager?])]
-  [auth-manager-login! (-> auth-manager? string? string? (or/c false/c void?))]
-  [auth-manager-logout! (-> auth-manager? void?)]
-  [wrap-auth-required (-> auth-manager? (-> (-> request? response?) (-> request? response?)))]))
+ exn:fail:auth-manager?
+ exn:fail:auth-manager:unverified?
 
-(define current-user
+ make-auth-manager
+ auth-manager?
+ auth-manager-login!
+ auth-manager-logout!
+
+ current-user
+
+ wrap-auth-required)
+
+(define/contract current-user
+  (parameter/c (or/c false/c user?))
   (make-parameter #f))
 
 (struct exn:fail:auth-manager exn:fail ())
@@ -34,19 +38,29 @@
   [(define component-start identity)
    (define component-stop identity)])
 
-(define (auth-manager-login! am username password)
+(define/contract (make-auth-manager sessions users)
+  (-> session-manager? user-manager? auth-manager?)
+  (auth-manager sessions users))
+
+(define/contract (auth-manager-login! am username password)
+  (-> auth-manager? non-empty-string? non-empty-string? (or/c false/c user?))
   (match (user-manager-login (auth-manager-user-manager am) username password)
     [#f #f]
-    [(user id _ _ verified? _ _ _)
+    [(and (user id _ _ verified? _ _ _) user)
      (unless verified?
        (raise (exn:fail:auth-manager:unverified "this user is not verified" (current-continuation-marks))))
 
-     (session-manager-set! (auth-manager-session-manager am) 'uid (number->string id))]))
+     (begin0 user
+       (session-manager-set! (auth-manager-session-manager am) 'uid (number->string id)))]))
 
-(define (auth-manager-logout! am)
+(define/contract (auth-manager-logout! am)
+  (-> auth-manager? void?)
   (session-manager-remove! (auth-manager-session-manager am) 'uid))
 
-(define (((wrap-auth-required am) handler) req)
+(define/contract (((wrap-auth-required am) handler) req)
+  (-> auth-manager? (-> (-> request? response?)
+                        (-> request? response?)))
+
   (with-timing 'auth "wrap-auth-required"
     (define user
       (and~>> (session-manager-ref (auth-manager-session-manager am) 'uid #f)
@@ -77,6 +91,10 @@
                                     #:store (make-memory-session-store))]
     [users (db) user-manager])
 
+  (define auth #f)
+  (define users #f)
+  (define user #f)
+
   (run-tests
    (test-suite
     "auth-manager"
@@ -86,8 +104,9 @@
       (with-database-connection [conn (system-get test-system 'db)]
         (query-exec conn "truncate table users"))
 
-      (define users (system-get test-system 'users))
-      (user-manager-create! users "bogdan" "hunter2"))
+      (set! auth (system-get test-system 'auth))
+      (set! users (system-get test-system 'users))
+      (set! user (user-manager-create! users "bogdan" "hunter2")))
 
     #:after
     (lambda _
@@ -98,14 +117,20 @@
 
      (test-case "returns #f if the user does not exist"
        (check-false
-        (auth-manager-login! (system-get test-system 'auth) "idontexist" "hunter2")))
+        (auth-manager-login! auth "idontexist" "hunter2")))
 
      (test-case "returns #f if the password is wrong"
        (check-false
-        (auth-manager-login! (system-get test-system 'auth) "bogdan" "invalid")))
+        (auth-manager-login! auth "bogdan" "invalid")))
 
      (test-case "fails if the user is not verified"
        (check-exn
         exn:fail:auth-manager:unverified?
         (lambda _
-          (auth-manager-login! (system-get test-system 'auth) "bogdan" "hunter2"))))))))
+          (auth-manager-login! auth "bogdan" "hunter2"))))
+
+     (test-case "returns the user when verified"
+       (parameterize ([current-session-id "fake"])
+         (user-manager-verify users (user-id user) (user-verification-code user))
+         (check-equal? (user-id user)
+                       (user-id (auth-manager-login! auth "bogdan" "hunter2")))))))))
