@@ -1,30 +1,35 @@
 #lang racket/base
 
-(require component
+(require (for-syntax racket/base
+                     syntax/parse)
+         component
          net/url
          racket/contract
          racket/function
          racket/match
          racket/string
          threading
+         web-server/dispatch
+         web-server/dispatchers/dispatch
          web-server/http
          "profiler.rkt"
          "session.rkt"
          "url.rkt"
          "user.rkt")
 
+;; Manager ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (provide
- exn:fail:auth-manager?
- exn:fail:auth-manager:unverified?
+ current-user
 
  make-auth-manager
  auth-manager?
  auth-manager-login!
  auth-manager-logout!
+ wrap-auth-required
 
- current-user
-
- wrap-auth-required)
+ exn:fail:auth-manager?
+ exn:fail:auth-manager:unverified?)
 
 (define/contract current-user
   (parameter/c (or/c false/c user?))
@@ -57,21 +62,31 @@
   (-> auth-manager? void?)
   (session-manager-remove! (auth-manager-session-manager am) 'uid))
 
-(define/contract (((wrap-auth-required am) handler) req)
-  (-> auth-manager? (-> (-> request? response?)
-                        (-> request? response?)))
+(define/contract (((wrap-auth-required am req-roles) handler) req)
+  (-> auth-manager?
+      (-> request? (listof symbol?))
+      (-> (-> request? response?)
+          (-> request? response?)))
 
   (with-timing 'auth "wrap-auth-required"
-    (define user
-      (and~>> (session-manager-ref (auth-manager-session-manager am) 'uid #f)
-              (string->number)
-              (user-manager-lookup/id (auth-manager-user-manager am))))
+    (define roles (req-roles req))
+    (cond
+      [(null? roles)
+       (handler req)]
 
-    (if user
-        (parameterize ([current-user user])
-          (handler req))
-        (redirect-to (make-application-url "login" #:query `((return . ,(url->string (request-uri req)))))))))
+      [else
+       (define user
+         (and~>> (session-manager-ref (auth-manager-session-manager am) 'uid #f)
+                 (string->number)
+                 (user-manager-lookup/id (auth-manager-user-manager am))))
 
+       ;; NOTE: Roles are not actually checked beyond this point.  If you
+       ;; implement roles other than 'user then you're going to want to
+       ;; change this.
+       (if user
+           (parameterize ([current-user user])
+             (handler req))
+           (redirect-to (make-application-url "login" #:query `((return . ,(url->string (request-uri req)))))))])))
 
 (module+ test
   (require db
@@ -134,3 +149,67 @@
          (user-manager-verify users (user-id user) (user-verification-code user))
          (check-equal? (user-id user)
                        (user-id (auth-manager-login! auth "bogdan" "hunter2")))))))))
+
+
+;; Syntax ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(provide
+ dispatch-rules+roles)
+
+(define (default-else req)
+  (next-dispatcher))
+
+(define-syntax (dispatch-rules+roles stx)
+  (syntax-parse stx
+    #:literals (else)
+    [(_
+      [pat
+       (~optional (~seq #:method method) #:defaults ([method #'"get"]))
+       (~optional (~seq #:roles (role:id ...)) #:defaults ([(role 1) null]))
+       fun]
+      ...
+      [else else-fun])
+     (syntax/loc stx
+       (let-values ([(dispatch url)
+                     (dispatch-rules
+                      [pat #:method method fun] ...
+                      [else else-fun])]
+                    [(roles)
+                     (dispatch-case
+                      [pat #:method method (const '(role ...))] ...
+                      [else (const null)])])
+         (values dispatch url roles)))]
+
+    [(_
+      [pat
+       (~optional (~seq #:method method) #:defaults ([method #'"get"]))
+       (~optional (~seq #:roles (role:id ...)) #:defaults ([(role 1) null]))
+       fun] ...)
+     (syntax/loc stx
+       (dispatch-rules+roles
+        [pat #:method method #:roles (role ...) fun] ...
+        [else default-else]))]))
+
+
+(module+ test
+  (require "./testing.rkt")
+
+  (run-tests
+   (test-suite
+    "auth"
+
+    (test-suite
+     "dispatch-rules+roles"
+
+     (test-case "generates a function from requests to lists of roles"
+       (define-values (dispatch reverse-uri req-roles)
+         (dispatch-rules+roles
+          [("") (const "home")]
+          [("lounge") #:roles (user) (const "lounge")]
+          [("admin") #:roles (admin) (const "admin")]))
+
+       (check-equal? (req-roles (make-test-request)) '())
+       (check-equal? (req-roles (make-test-request #:path "/invalid")) '())
+       (check-equal? (req-roles (make-test-request #:path "/lounge")) '(user))
+       (check-equal? (req-roles (make-test-request #:path "/lounge" #:method "POST")) '())
+       (check-equal? (req-roles (make-test-request #:path "/admin")) '(admin)))))))

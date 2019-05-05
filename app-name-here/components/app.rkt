@@ -58,27 +58,21 @@
   [(define component-start identity)
    (define component-stop identity)])
 
-(define (((wrap-applies applies?) handler) req)
-  (if (applies? req)
-      (handler req)
-      (next-dispatcher)))
-
 (define (make-app auth db flashes mailer sessions users)
-  (define-values (dispatch-auth reverse-main-uri applies-to-auth?)
-    (dispatch-rules+applies
-     [("") dashboard-page]))
-
-  (define-values (dispatch-anon reverse-auth-uri applies-to-anon?)
-    (dispatch-rules+applies
+  (define-values (dispatch reverse-uri req-roles)
+    (dispatch-rules+roles
+     [("") #:roles (user) dashboard-page]
      [("login") (login-page auth)]
      [("logout") (logout-page auth)]
      [("signup") (signup-page auth mailer users)]
-     [("verify" (integer-arg) (string-arg)) (verify-page flashes users)]))
+     [("verify" (integer-arg) (string-arg)) (verify-page flashes users)]
+     [else not-found-page]))
 
   ;; Requests go up (starting from the last wrapper) and respones go down!
-  (define (anon-stack handler)
+  (define (stack handler)
     (~> handler
         ((wrap-browser-locale sessions))
+        ((wrap-auth-required auth req-roles))
         ((wrap-flash flashes))
         ((wrap-session sessions))
         (wrap-protect-continuations)
@@ -86,24 +80,9 @@
         (wrap-cors)
         (wrap-profiler)))
 
-  ;; Ditto.
-  (define (auth-stack handler)
-    (~> handler
-        ((wrap-browser-locale sessions))
-        ((wrap-auth-required auth))
-        ((wrap-flash flashes))
-        ((wrap-session sessions))
-        (wrap-protect-continuations)
-        (wrap-preload)
-        (wrap-cors)
-        (wrap-profiler)
-        ((wrap-applies applies-to-auth?))))
-
   (define manager
-    (make-threshold-LRU-manager (anon-stack (expired-page flashes)) (* 1024 1024 128)))
+    (make-threshold-LRU-manager (stack (expired-page flashes)) (* 1024 1024 128)))
 
   (app (sequencer:make
         (filter:make #rx"^/static/.+$" static-dispatcher)
-        (dispatch/servlet #:manager manager (anon-stack dispatch-anon))
-        (dispatch/servlet #:manager manager (auth-stack dispatch-auth))
-        (dispatch/servlet (anon-stack not-found-page)))))
+        (dispatch/servlet #:manager manager (stack dispatch)))))
