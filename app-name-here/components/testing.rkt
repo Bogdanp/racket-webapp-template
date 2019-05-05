@@ -40,7 +40,7 @@
                            #:path [path "/"]
                            #:query [query null])
   (request (false/string/bytes->bytes method)
-           (url scheme #f host port #t (map (curryr path/param #f) (string-split path "/")) query #f)
+           (url scheme #f host port #t (map (curryr path/param null) (string-split path "/")) query #f)
            headers
            (delay bindings)
            (false/string/bytes->bytes content)
