@@ -9,6 +9,7 @@
          "../flash.rkt"
          "../l10n.rkt"
          "../mail.rkt"
+         "../url.rkt"
          "../user.rkt"
          "../template.rkt")
 
@@ -58,7 +59,7 @@
             ,(translate 'action-log-in))
 
     (a ((class "button button--secondary")
-        (href "/signup"))
+        (href ,(reverse-uri 'signup-page)))
        ,(translate 'action-sign-up-no-account))))
 
 (define ((login-page auth) req)
@@ -83,7 +84,7 @@
                              (render render-widget (translate 'error-verify-email)))])
             (cond
               [(auth-manager-login! auth username password)
-               (redirect-to (or return-url "/"))]
+               (redirect-to (or return-url (reverse-uri 'dashboard-page)))]
 
               [else
                (render render-widget (translate 'error-invalid-credentials))]))]
@@ -93,7 +94,7 @@
 
 (define ((logout-page auth) req)
   (auth-manager-logout! auth)
-  (redirect-to "/login"))
+  (redirect-to (reverse-uri 'login-page)))
 
 
 ;; signup & verify ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -127,7 +128,7 @@
             ,(translate 'action-sign-up))
 
     (a ((class "button button--secondary")
-        (href "/login"))
+        (href ,(reverse-uri 'login-page)))
        ,(translate 'action-log-in-signed-up))))
 
 (define ((signup-page auth mailer users) req)
@@ -161,4 +162,4 @@
 (define ((verify-page flashes users) req user-id verification-code)
   (user-manager-verify users user-id verification-code)
   (flash flashes 'success "You have successfully verified your e-mail address!")
-  (redirect-to "/login"))
+  (redirect-to (reverse-uri 'login-page)))

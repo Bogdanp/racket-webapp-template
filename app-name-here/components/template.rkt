@@ -13,7 +13,8 @@
          "flash.rkt"
          "l10n.rkt"
          "preload.rkt"
-         "profiler.rkt")
+         "profiler.rkt"
+         "url.rkt")
 
 (provide container static-uri page xexpr-when)
 
@@ -77,11 +78,11 @@
         (body
          ,@(xexpr-when show-nav?
              (if (current-user)
-                 (nav (nav-item "/" (translate 'nav-dashboard))
-                      (nav-item "/logout" (translate 'nav-log-out)))
-                 (nav (nav-item "/" (translate 'nav-dashboard))
-                      (nav-item "/login" (translate 'nav-log-in))
-                      (nav-item "/signup" (translate 'nav-sign-up)))))
+                 (nav (nav-item (reverse-uri 'home-page) (translate 'nav-dashboard))
+                      (nav-item (reverse-uri 'logout-page) (translate 'nav-log-out)))
+                 (nav (nav-item (reverse-uri 'dashboard-page) (translate 'nav-dashboard))
+                      (nav-item (reverse-uri 'login-page) (translate 'nav-log-in))
+                      (nav-item (reverse-uri 'signup-page) (translate 'nav-sign-up)))))
 
          ,@(xexpr-when (not (null? (current-flash-messages)))
              (container

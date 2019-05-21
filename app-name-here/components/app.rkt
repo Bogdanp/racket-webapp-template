@@ -32,6 +32,7 @@
          "preload.rkt"
          "profiler.rkt"
          "session.rkt"
+         "url.rkt"
          "user.rkt")
 
 (provide
@@ -67,6 +68,8 @@
      [("signup") (signup-page auth mailer users)]
      [("verify" (integer-arg) (string-arg)) (verify-page flashes users)]
      [else not-found-page]))
+
+  (current-reverse-uri-fn reverse-uri)
 
   ;; Requests go up (starting from the last wrapper) and respones go down!
   (define (stack handler)
