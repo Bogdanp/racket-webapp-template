@@ -42,7 +42,9 @@
   (request (false/string/bytes->bytes method)
            (url scheme #f host port #t (map (curryr path/param null) (string-split path "/")) query #f)
            headers
-           (delay bindings)
+           (delay (append bindings (for/list ([param query])
+                                     (make-binding:form (string->bytes/utf-8 (symbol->string (car param)))
+                                                        (string->bytes/utf-8 (cdr param))))))
            (false/string/bytes->bytes content)
            host
            port
