@@ -104,24 +104,30 @@
 
 (define-syntax (user-manager-lookup stx)
   (syntax-parse stx
-    [(_ user-manager where-clause)
-     #'(let ([row (with-database-connection [conn (user-manager-db user-manager)]
-                    (query-maybe-row conn (select id username password_hash
-                                                  verified verification_code
-                                                  created_at updated_at
-                                                  #:from users
-                                                  #:where where-clause)))])
-         (and row (apply user (row->list row))))]))
+    [(_ user-manager e ...)
+     #'(with-database-connection [conn (user-manager-db user-manager)]
+         (for/first ([(id username password-hash verified? verification-code created-at updated-at)
+                      (in-row conn (select id username password_hash
+                                           verified verification_code
+                                           created_at updated_at
+                                           #:from users e ...))])
+           (user++ #:id id
+                   #:username username
+                   #:password-hash password-hash
+                   #:verified? verified?
+                   #:verification-code verification-code
+                   #:created-at created-at
+                   #:updated-at updated-at)))]))
 
 (define/contract (user-manager-lookup/id um id)
   (-> user-manager? exact-positive-integer? (or/c false/c user?))
   (with-timing 'user-manager (format "(user-manager-lookup/id ~v)" id)
-    (user-manager-lookup um (= id ,id))))
+    (user-manager-lookup um #:where (= id ,id))))
 
 (define/contract (user-manager-lookup/username um username)
   (-> user-manager? string? (or/c false/c user?))
   (with-timing 'user-manager (format "(user-manager-lookup/username ~v)" username)
-    (user-manager-lookup um (= username ,username))))
+    (user-manager-lookup um #:where (= username ,username))))
 
 (define/contract (user-manager-login um username password)
   (-> user-manager? string? string? (or/c false/c user?))
