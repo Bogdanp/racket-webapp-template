@@ -78,7 +78,7 @@
         (body
          ,@(xexpr-when show-nav?
              (if (current-user)
-                 (nav (nav-item (reverse-uri 'home-page) (translate 'nav-dashboard))
+                 (nav (nav-item (reverse-uri 'dashboard-page) (translate 'nav-dashboard))
                       (nav-item (reverse-uri 'logout-page) (translate 'nav-log-out)))
                  (nav (nav-item (reverse-uri 'dashboard-page) (translate 'nav-dashboard))
                       (nav-item (reverse-uri 'login-page) (translate 'nav-log-in))
