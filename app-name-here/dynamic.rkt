@@ -3,6 +3,7 @@
 (require component
          koyo/database
          koyo/flash
+         koyo/server
          koyo/session
          koyo/url
          postmark
@@ -10,7 +11,6 @@
          "components/app.rkt"
          "components/auth.rkt"
          "components/mail.rkt"
-         "components/server.rkt"
          "components/user.rkt"
          (prefix-in config: "config.rkt"))
 
@@ -50,8 +50,8 @@
   [mailer (make-mailer #:adapter mail-adapter
                        #:sender config:support-email
                        #:common-variables common-mail-variables)]
-  [server (app) (compose1 (make-server #:host config:http-host
-                                       #:port config:http-port) app-dispatcher)]
+  [server (app) (compose1 (make-server-factory #:host config:http-host
+                                               #:port config:http-port) app-dispatcher)]
   [sessions (make-session-manager-factory #:cookie-name config:session-cookie-name
                                           #:cookie-secure? #f
                                           #:shelf-life config:session-shelf-life
