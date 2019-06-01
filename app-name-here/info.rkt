@@ -8,7 +8,6 @@
                "forms-lib"
                "gregor-lib"
                "koyo-lib"
-               "north"
                "postmark-client"
                "sql"
                "srfi-lite-lib"
