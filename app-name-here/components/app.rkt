@@ -20,7 +20,6 @@
          web-server/managers/lru
          web-server/servlet-dispatch
          "auth.rkt"
-         "http.rkt"
          "l10n.rkt"
          "mail.rkt"
          "page/auth.rkt"
