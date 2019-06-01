@@ -4,6 +4,7 @@
                      racket/file
                      racket/path
                      syntax/parse)
+         koyo/flash
          koyo/profiler
          racket/format
          racket/runtime-path
@@ -11,7 +12,6 @@
          xml
          (prefix-in config: "../config.rkt")
          "auth.rkt"
-         "flash.rkt"
          "l10n.rkt"
          "preload.rkt"
          "url.rkt")

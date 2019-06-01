@@ -1,9 +1,9 @@
 #lang racket/base
 
-(require net/url
+(require koyo/flash
+         net/url
          racket/contract/base
          web-server/http
-         "../flash.rkt"
          "../template.rkt")
 
 (provide

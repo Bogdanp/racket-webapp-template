@@ -3,6 +3,7 @@
 (require (for-syntax racket/base)
          component
          koyo/continuation
+         koyo/flash
          koyo/profiler
          koyo/session
          net/url
@@ -24,7 +25,6 @@
          "auth.rkt"
          "cors.rkt"
          "database.rkt"
-         "flash.rkt"
          "http.rkt"
          "l10n.rkt"
          "mail.rkt"

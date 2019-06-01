@@ -1,12 +1,12 @@
 #lang racket/base
 
 (require forms
+         koyo/flash
          racket/contract/base
          racket/match
          threading
          web-server/servlet
          "../auth.rkt"
-         "../flash.rkt"
          "../l10n.rkt"
          "../mail.rkt"
          "../url.rkt"
