@@ -1,10 +1,10 @@
 #lang racket/base
 
-(require racket/contract
+(require koyo/profiler
+         racket/contract
          racket/string
          web-server/http
-         (prefix-in config: "../config.rkt")
-         "profiler.rkt")
+         (prefix-in config: "../config.rkt"))
 
 (provide wrap-cors)
 

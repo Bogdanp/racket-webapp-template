@@ -1,13 +1,13 @@
 #lang racket/base
 
-(require libuuid
+(require koyo/profiler
+         libuuid
          racket/contract
          racket/function
          web-server/http
          web-server/managers/manager
          web-server/servlet/servlet-structs
-         web-server/servlet/web
-         "profiler.rkt")
+         web-server/servlet/web)
 
 ;; The main advantage to using continuations in a web context is that
 ;; they let you avoid the inversion of control problem.  However, that

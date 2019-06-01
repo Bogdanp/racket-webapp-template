@@ -1,6 +1,7 @@
 #lang racket/base
 
 (require component
+         koyo/session
          postmark
          racket/runtime-path
          "components/app.rkt"
@@ -9,7 +10,6 @@
          "components/flash.rkt"
          "components/mail.rkt"
          "components/server.rkt"
-         "components/session.rkt"
          "components/user.rkt"
          "components/url.rkt"
          (prefix-in config: "config.rkt"))
@@ -52,10 +52,11 @@
                        #:common-variables common-mail-variables)]
   [server (app) (compose1 (make-server #:host config:http-host
                                        #:port config:http-port) app-dispatcher)]
-  [sessions (make-session-manager #:cookie-name config:session-cookie-name
-                                  #:shelf-life config:session-shelf-life
-                                  #:secret-key config:session-secret-key
-                                  #:store (make-memory-session-store))]
+  [sessions (make-session-manager-factory #:cookie-name config:session-cookie-name
+                                          #:cookie-secure? #f
+                                          #:shelf-life config:session-shelf-life
+                                          #:secret-key config:session-secret-key
+                                          #:store (make-memory-session-store #:file-path "/tmp/app-name-here-session.ss"))]
   [users (db) user-manager])
 
 (module+ main

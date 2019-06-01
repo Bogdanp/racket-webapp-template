@@ -1,11 +1,11 @@
 #lang racket/base
 
 (require component
+         koyo/profiler
+         koyo/session
          racket/contract/base
          racket/function
-         web-server/http
-         "profiler.rkt"
-         "session.rkt")
+         web-server/http)
 
 ;; Flash manager ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -60,10 +60,10 @@
 
   (define-system test
     [flashes (sessions) flash-manager]
-    [sessions (make-session-manager #:cookie-name config:session-cookie-name
-                                    #:shelf-life config:session-shelf-life
-                                    #:secret-key config:session-secret-key
-                                    #:store (make-memory-session-store #:file-path (make-temporary-file)))])
+    [sessions (make-session-manager-factory #:cookie-name config:session-cookie-name
+                                            #:shelf-life config:session-shelf-life
+                                            #:secret-key config:session-secret-key
+                                            #:store (make-memory-session-store #:file-path (make-temporary-file)))])
 
   (run-tests
    (test-suite

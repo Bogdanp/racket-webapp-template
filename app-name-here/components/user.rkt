@@ -7,6 +7,7 @@
          crypto/argon2
          db
          gregor
+         koyo/profiler
          openssl/md5
          racket/contract
          racket/function
@@ -17,8 +18,7 @@
          sql
          struct-plus-plus
          threading
-         "database.rkt"
-         "profiler.rkt")
+         "database.rkt")
 
 ;; user ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 

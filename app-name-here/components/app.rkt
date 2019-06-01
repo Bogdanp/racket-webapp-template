@@ -2,6 +2,8 @@
 
 (require (for-syntax racket/base)
          component
+         koyo/profiler
+         koyo/session
          net/url
          racket/contract/base
          racket/function
@@ -30,8 +32,6 @@
          "page/common.rkt"
          "page/dashboard.rkt"
          "preload.rkt"
-         "profiler.rkt"
-         "session.rkt"
          "url.rkt"
          "user.rkt")
 

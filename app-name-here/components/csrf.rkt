@@ -1,11 +1,11 @@
 #lang racket/base
 
-(require libuuid
+(require koyo/profiler
+         koyo/session
+         libuuid
          racket/contract/base
          threading
          web-server/http
-         "profiler.rkt"
-         "session.rkt"
          "testing.rkt")
 
 (provide
@@ -78,10 +78,10 @@
 
   (define sessions
     (component-start
-     ((make-session-manager #:cookie-name config:session-cookie-name
-                            #:shelf-life config:session-shelf-life
-                            #:secret-key config:session-secret-key
-                            #:store (make-memory-session-store #:file-path (make-temporary-file))))))
+     ((make-session-manager-factory #:cookie-name config:session-cookie-name
+                                    #:shelf-life config:session-shelf-life
+                                    #:secret-key config:session-secret-key
+                                    #:store (make-memory-session-store #:file-path (make-temporary-file))))))
 
   (define wrapper
     (compose1 (wrap-session sessions)

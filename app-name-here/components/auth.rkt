@@ -3,6 +3,8 @@
 (require (for-syntax racket/base
                      syntax/parse)
          component
+         koyo/profiler
+         koyo/session
          net/url
          racket/contract
          racket/function
@@ -12,8 +14,6 @@
          web-server/dispatch
          web-server/dispatchers/dispatch
          web-server/http
-         "profiler.rkt"
-         "session.rkt"
          "url.rkt"
          "user.rkt")
 
@@ -100,10 +100,10 @@
     [db (make-database #:database config:test-db-name
                        #:username config:test-db-username
                        #:password config:test-db-password)]
-    [sessions (make-session-manager #:cookie-name config:session-cookie-name
-                                    #:shelf-life config:session-shelf-life
-                                    #:secret-key config:session-secret-key
-                                    #:store (make-memory-session-store))]
+    [sessions (make-session-manager-factory #:cookie-name config:session-cookie-name
+                                            #:shelf-life config:session-shelf-life
+                                            #:secret-key config:session-secret-key
+                                            #:store (make-memory-session-store))]
     [users (db) user-manager])
 
   (define auth #f)

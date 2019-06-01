@@ -2,14 +2,14 @@
 
 (require (for-syntax racket/base)
          gregor
+         koyo/profiler
+         koyo/session
          racket/contract
          racket/match
          racket/runtime-path
          racket/string
          srfi/29
-         web-server/http
-         "profiler.rkt"
-         "session.rkt")
+         web-server/http)
 
 ;; Translate ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 

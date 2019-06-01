@@ -4,6 +4,7 @@
                      racket/file
                      racket/path
                      syntax/parse)
+         koyo/profiler
          racket/format
          racket/runtime-path
          web-server/http
@@ -13,7 +14,6 @@
          "flash.rkt"
          "l10n.rkt"
          "preload.rkt"
-         "profiler.rkt"
          "url.rkt")
 
 (provide container static-uri page xexpr-when)
@@ -60,7 +60,7 @@
               #:show-nav? [show-nav? #t]
               . content)
 
-  ;; Write-profile is called inside a different thread so we have to
+  ;; profile-write is called inside a different thread so we have to
   ;; grab the current profile here and then pass it in to ensure that
   ;; the right profile gets rendered.
   (define profile (current-profile))
@@ -109,4 +109,4 @@
        (parameterize ([current-output-port out])
          (displayln "<!doctype html>")
          (write-xml/content (xexpr->xml page))
-         (write-profile profile))))))
+         (profile-write profile))))))

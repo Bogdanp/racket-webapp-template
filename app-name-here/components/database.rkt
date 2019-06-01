@@ -3,14 +3,14 @@
 (require (for-syntax racket/base
                      syntax/parse)
          component
+         koyo/profiler
          db
          db/util/postgresql
          gregor
          racket/contract
          racket/match
          racket/sequence
-         racket/vector
-         "profiler.rkt")
+         racket/vector)
 
 (provide
  (contract-out

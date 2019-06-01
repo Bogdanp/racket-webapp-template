@@ -1,9 +1,9 @@
 #lang racket/base
 
-(require racket/match
+(require koyo/profiler
+         racket/match
          racket/path
-         web-server/http
-         "profiler.rkt")
+         web-server/http)
 
 (provide
  current-preload-dependencies
