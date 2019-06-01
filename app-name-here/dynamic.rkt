@@ -1,13 +1,8 @@
 #lang racket/base
 
 (require component
-         koyo/database
-         koyo/flash
-         koyo/server
-         koyo/session
-         koyo/url
+         koyo
          postmark
-         racket/runtime-path
          "components/app.rkt"
          "components/auth.rkt"
          "components/mail.rkt"
