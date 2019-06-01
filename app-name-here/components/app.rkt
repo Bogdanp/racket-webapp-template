@@ -2,6 +2,7 @@
 
 (require (for-syntax racket/base)
          component
+         koyo/continuation
          koyo/profiler
          koyo/session
          net/url
@@ -21,7 +22,6 @@
          web-server/managers/lru
          web-server/servlet-dispatch
          "auth.rkt"
-         "continuation.rkt"
          "cors.rkt"
          "database.rkt"
          "flash.rkt"

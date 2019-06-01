@@ -7,6 +7,7 @@
                "db-lib"
                "forms-lib"
                "gregor-lib"
+               "koyo-lib"
                "libuuid"
                "north"
                "postmark-client"

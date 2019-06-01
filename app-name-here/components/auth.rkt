@@ -212,7 +212,7 @@
 
 
 (module+ test
-  (require "./testing.rkt")
+  (require koyo/testing)
 
   (run-tests
    (test-suite

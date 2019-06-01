@@ -2,11 +2,11 @@
 
 (require koyo/profiler
          koyo/session
+         koyo/testing
          libuuid
          racket/contract/base
          threading
-         web-server/http
-         "testing.rkt")
+         web-server/http)
 
 (provide
  (contract-out

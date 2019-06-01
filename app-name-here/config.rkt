@@ -12,7 +12,7 @@
 
 (define-option profile
   (begin0 profile
-    (current-profiler-enabled? (and profile #t))))
+    (profiler-enabled? (and profile #t))))
 
 (define-option log-level #:default "info"
   (string->symbol log-level))
