@@ -2,6 +2,7 @@
 
 (require forms
          koyo/flash
+         koyo/url
          racket/contract/base
          racket/match
          threading
@@ -9,7 +10,6 @@
          "../auth.rkt"
          "../l10n.rkt"
          "../mail.rkt"
-         "../url.rkt"
          "../user.rkt"
          "../template.rkt")
 

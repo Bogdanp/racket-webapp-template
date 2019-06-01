@@ -2,6 +2,7 @@
 
 (require koyo/config
          koyo/profiler
+         koyo/url
          web-server/http/id-cookie)
 
 (current-option-name-prefix "APP_NAME_HERE_")
@@ -21,9 +22,17 @@
 (define-option http-port #:default "8000"
   (string->number http-port))
 
-(define-option url-scheme #:default "http")
-(define-option url-host #:default "127.0.0.1")
-(define-option url-port #:default "8000")
+(define-option url-scheme #:default "http"
+  (begin0 url-scheme
+    (current-application-url-scheme url-scheme)))
+
+(define-option url-host #:default "127.0.0.1"
+  (begin0 url-host
+    (current-application-url-host url-host)))
+
+(define-option url-port #:default "8000"
+  (begin0 url-port
+    (current-application-url-port (string->number url-port))))
 
 (define-option db-name #:default "app_name_here")
 (define-option db-username #:default "app_name_here")

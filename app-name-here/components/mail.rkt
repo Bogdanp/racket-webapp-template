@@ -1,6 +1,7 @@
 #lang racket/base
 
 (require component
+         koyo/url
          postmark
          racket/contract/base
          racket/format
@@ -9,7 +10,6 @@
          racket/hash
          racket/string
          "../util.rkt"
-         "url.rkt"
          "user.rkt")
 
 

@@ -4,8 +4,10 @@
          component
          koyo/continuation
          koyo/flash
+         koyo/preload
          koyo/profiler
          koyo/session
+         koyo/url
          net/url
          racket/contract/base
          racket/function
@@ -31,8 +33,6 @@
          "page/auth.rkt"
          "page/common.rkt"
          "page/dashboard.rkt"
-         "preload.rkt"
-         "url.rkt"
          "user.rkt")
 
 (provide

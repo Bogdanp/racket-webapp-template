@@ -5,16 +5,16 @@
                      racket/path
                      syntax/parse)
          koyo/flash
+         koyo/preload
          koyo/profiler
+         koyo/url
          racket/format
          racket/runtime-path
          web-server/http
          xml
          (prefix-in config: "../config.rkt")
          "auth.rkt"
-         "l10n.rkt"
-         "preload.rkt"
-         "url.rkt")
+         "l10n.rkt")
 
 (provide container static-uri page xexpr-when)
 
@@ -33,7 +33,7 @@
        (raise-syntax-error 'static-uri (format "static file ~v not found" (syntax->datum #'path))))
 
      #'(let ([p (format "/static/~a?rev=~a" path config:version)])
-         (current-preload-dependencies (cons p (current-preload-dependencies)))
+         (track-preload-dependency! p)
          p)]))
 
 (define-syntax (xexpr-when stx)

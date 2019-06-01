@@ -5,6 +5,7 @@
          component
          koyo/profiler
          koyo/session
+         koyo/url
          net/url
          racket/contract
          racket/function
@@ -14,7 +15,6 @@
          web-server/dispatch
          web-server/dispatchers/dispatch
          web-server/http
-         "url.rkt"
          "user.rkt")
 
 ;; Manager ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

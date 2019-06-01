@@ -3,6 +3,7 @@
 (require component
          koyo/flash
          koyo/session
+         koyo/url
          postmark
          racket/runtime-path
          "components/app.rkt"
@@ -11,7 +12,6 @@
          "components/mail.rkt"
          "components/server.rkt"
          "components/user.rkt"
-         "components/url.rkt"
          (prefix-in config: "config.rkt"))
 
 (provide
