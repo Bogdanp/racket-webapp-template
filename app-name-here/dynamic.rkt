@@ -1,6 +1,7 @@
 #lang racket/base
 
 (require component
+         koyo/database
          koyo/flash
          koyo/session
          koyo/url
@@ -8,7 +9,6 @@
          racket/runtime-path
          "components/app.rkt"
          "components/auth.rkt"
-         "components/database.rkt"
          "components/mail.rkt"
          "components/server.rkt"
          "components/user.rkt"
@@ -41,11 +41,11 @@
 (define-system prod
   [app (auth db flashes mailer sessions users) make-app]
   [auth (sessions users) make-auth-manager]
-  [db (make-database #:database config:db-name
-                     #:username config:db-username
-                     #:password config:db-password
-                     #:host config:db-host
-                     #:port config:db-port)]
+  [db (make-database-factory #:database config:db-name
+                             #:username config:db-username
+                             #:password config:db-password
+                             #:host config:db-host
+                             #:port config:db-port)]
   [flashes (sessions) make-flash-manager]
   [mailer (make-mailer #:adapter mail-adapter
                        #:sender config:support-email

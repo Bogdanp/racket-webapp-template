@@ -3,6 +3,7 @@
 (require (for-syntax racket/base)
          component
          koyo/continuation
+         koyo/database
          koyo/flash
          koyo/preload
          koyo/profiler
@@ -26,7 +27,6 @@
          web-server/servlet-dispatch
          "auth.rkt"
          "cors.rkt"
-         "database.rkt"
          "http.rkt"
          "l10n.rkt"
          "mail.rkt"

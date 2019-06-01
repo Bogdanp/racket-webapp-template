@@ -7,6 +7,7 @@
          crypto/argon2
          db
          gregor
+         koyo/database
          koyo/profiler
          openssl/md5
          racket/contract
@@ -17,8 +18,7 @@
          racket/string
          sql
          struct-plus-plus
-         threading
-         "database.rkt")
+         threading)
 
 ;; user ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -152,9 +152,9 @@
            (prefix-in config: "../config.rkt"))
 
   (define-system test
-    [db (make-database #:database config:test-db-name
-                       #:username config:test-db-username
-                       #:password config:test-db-password)]
+    [db (make-database-factory #:database config:test-db-name
+                               #:username config:test-db-username
+                               #:password config:test-db-password)]
     [user-manager (db) user-manager])
 
   (run-tests
