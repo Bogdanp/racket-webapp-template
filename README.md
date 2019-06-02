@@ -1,3 +1,11 @@
+# DEPRECATED
+
+I have extracted all of the stuff in here into [koyo].  Please use
+that instead!
+
+[koyo]: https://github.com/Bogdanp/koyo
+
+
 # racket-webapp-template
 
 A web application template for Racket.
