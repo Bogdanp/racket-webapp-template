@@ -1,15 +1,17 @@
 #lang racket/base
 
 (require gregor
-         racket/contract/base
+         racket/contract
          racket/format
          racket/match
          (prefix-in config: "config.rkt"))
 
-(provide (contract-out
-          [start-logger (->* () (port?) thread?)]))
+(provide
+ start-logger)
 
-(define (start-logger [output-port (current-error-port)])
+(define/contract (start-logger (output-port (current-error-port)))
+  (->* () (port?) thread?)
+
   (file-stream-buffer-mode output-port 'line)
 
   (define log-receiver

@@ -145,8 +145,8 @@
 
   (define adapter (make-stub-mail-adapter))
   (define mailer ((make-mailer #:adapter adapter
-                                #:sender "support@example.com"
-                                #:common-variables (hasheq))))
+                               #:sender "support@example.com"
+                               #:common-variables (hasheq))))
 
   (run-tests
    (test-suite

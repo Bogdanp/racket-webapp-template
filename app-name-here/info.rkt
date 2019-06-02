@@ -10,7 +10,6 @@
                "koyo-lib"
                "postmark-client"
                "sql"
-               "srfi-lite-lib"
                "struct-plus-plus"
                "threading-lib"
                "web-server-lib"))

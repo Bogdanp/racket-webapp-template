@@ -2,13 +2,13 @@
 
 (require forms
          koyo/flash
+         koyo/l10n
          koyo/url
          racket/contract/base
          racket/match
          threading
          web-server/servlet
          "../auth.rkt"
-         "../l10n.rkt"
          "../mail.rkt"
          "../user.rkt"
          "../template.rkt")

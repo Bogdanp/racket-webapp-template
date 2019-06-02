@@ -4,17 +4,13 @@
                      racket/file
                      racket/path
                      syntax/parse)
-         koyo/flash
-         koyo/preload
-         koyo/profiler
-         koyo/url
+         koyo
          racket/format
          racket/runtime-path
          web-server/http
          xml
          (prefix-in config: "../config.rkt")
-         "auth.rkt"
-         "l10n.rkt")
+         "auth.rkt")
 
 (provide container static-uri page xexpr-when)
 

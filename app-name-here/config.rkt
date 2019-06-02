@@ -5,7 +5,7 @@
          koyo/url
          web-server/http/id-cookie)
 
-(current-option-name-prefix "APP_NAME_HERE_")
+(current-option-name-prefix "APP_NAME_HERE")
 
 (define-option version #:default "dev")
 (define-option debug
