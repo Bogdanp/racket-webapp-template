@@ -30,7 +30,7 @@
 
 (define mail-adapter
   (if config:postmark-token
-      (postmark-mail-adapter (postmark config:postmark-token))
+      (make-postmark-mail-adapter (postmark config:postmark-token))
       (make-stub-mail-adapter)))
 
 (define common-mail-variables
