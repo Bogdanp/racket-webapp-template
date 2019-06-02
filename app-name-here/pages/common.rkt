@@ -4,7 +4,7 @@
          net/url
          racket/contract/base
          web-server/http
-         "../template.rkt")
+         "../components/template.rkt")
 
 (provide
  (contract-out

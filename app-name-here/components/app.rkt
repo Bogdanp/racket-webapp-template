@@ -2,34 +2,38 @@
 
 (require (for-syntax racket/base)
          component
-         koyo
+         koyo/continuation
+         koyo/cors
+         koyo/database
+         koyo/dispatch
+         koyo/flash
+         koyo/l10n
+         koyo/mime
+         koyo/preload
+         koyo/profiler
+         koyo/session
+         koyo/url
          net/url
-         racket/contract/base
+         racket/contract
          racket/function
-         racket/path
          racket/runtime-path
-         racket/string
          threading
          web-server/dispatch
-         web-server/dispatchers/dispatch
          (prefix-in files: web-server/dispatchers/dispatch-files)
          (prefix-in filter: web-server/dispatchers/dispatch-filter)
          (prefix-in sequencer: web-server/dispatchers/dispatch-sequencer)
          web-server/dispatchers/filesystem-map
-         web-server/http
          web-server/managers/lru
          web-server/servlet-dispatch
          "auth.rkt"
          "mail.rkt"
-         "page/auth.rkt"
-         "page/common.rkt"
-         "page/dashboard.rkt"
+         "page.rkt"
          "user.rkt")
 
 (provide
- (contract-out
-  [struct app ([dispatcher dispatcher/c])]
-  [make-app (-> auth-manager? database? flash-manager? mailer? session-manager? user-manager? app?)]))
+ make-app
+ app?
+ app-dispatcher)
 
 (define-runtime-path static-path
   (build-path 'up 'up "static"))
@@ -50,7 +54,8 @@
   [(define component-start identity)
    (define component-stop identity)])
 
-(define (make-app auth db flashes mailer sessions users)
+(define/contract (make-app auth db flashes mailer sessions users)
+  (-> auth-manager? database? flash-manager? mailer? session-manager? user-manager? app?)
   (define-values (dispatch reverse-uri req-roles)
     (dispatch-rules+roles
      [("") #:roles (user) dashboard-page]

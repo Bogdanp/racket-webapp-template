@@ -2,9 +2,9 @@
 
 (require racket/contract/base
          web-server/http
-         "../auth.rkt"
-         "../user.rkt"
-         "../template.rkt")
+         "../components/auth.rkt"
+         "../components/user.rkt"
+         "../components/template.rkt")
 
 (provide
  (contract-out

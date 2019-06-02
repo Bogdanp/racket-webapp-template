@@ -2,7 +2,12 @@
 
 (require (for-syntax racket/base)
          component
-         koyo
+         koyo/database
+         koyo/flash
+         koyo/l10n
+         koyo/server
+         koyo/session
+         koyo/url
          postmark
          racket/runtime-path
          "components/app.rkt"

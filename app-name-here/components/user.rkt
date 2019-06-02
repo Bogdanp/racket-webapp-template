@@ -12,13 +12,11 @@
          openssl/md5
          racket/contract
          racket/function
-         racket/match
          racket/port
          racket/random
          racket/string
          sql
-         struct-plus-plus
-         threading)
+         struct-plus-plus)
 
 ;; user ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 

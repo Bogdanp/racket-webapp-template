@@ -4,7 +4,11 @@
                      racket/file
                      racket/path
                      syntax/parse)
-         koyo
+         koyo/flash
+         koyo/l10n
+         koyo/preload
+         koyo/profiler
+         koyo/url
          racket/format
          racket/runtime-path
          web-server/http

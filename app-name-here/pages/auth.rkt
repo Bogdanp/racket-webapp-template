@@ -8,10 +8,10 @@
          racket/match
          threading
          web-server/servlet
-         "../auth.rkt"
-         "../mail.rkt"
-         "../user.rkt"
-         "../template.rkt")
+         "../components/auth.rkt"
+         "../components/mail.rkt"
+         "../components/user.rkt"
+         "../components/template.rkt")
 
 (provide
  (contract-out

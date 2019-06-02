@@ -1,7 +1,6 @@
 #lang racket/base
 
-(require (for-syntax racket/base
-                     syntax/parse)
+(require (for-syntax racket/base)
          component
          koyo/profiler
          koyo/session
@@ -12,8 +11,6 @@
          racket/match
          racket/string
          threading
-         web-server/dispatch
-         web-server/dispatchers/dispatch
          web-server/http
          "user.rkt")
 
@@ -149,109 +146,3 @@
          (user-manager-verify users (user-id user) (user-verification-code user))
          (check-equal? (user-id user)
                        (user-id (auth-manager-login! auth "bogdan" "hunter2")))))))))
-
-
-;; Syntax ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(provide
- dispatch-rules+roles)
-
-(define (default-else req)
-  (next-dispatcher))
-
-(begin-for-syntax
-  (define-syntax-class dispatch-fun
-    (pattern fun:id
-             #:attr name #''fun)
-
-    (pattern (fun:dispatch-fun e ...)
-             #:attr name (attribute fun.name))))
-
-(define-syntax (dispatch-rules+roles stx)
-  (syntax-parse stx
-    #:literals (else)
-    [(_
-      [pat
-       (~alt (~optional (~seq #:method method) #:defaults ([method #'"get"]))
-             (~optional (~seq #:roles (role:id ...)) #:defaults ([(role 1) null]))
-             (~optional (~seq #:name name) #:defaults ([name #'#f]))) ...
-       fun:dispatch-fun]
-      ...
-      [else else-fun])
-     (with-syntax ([(fun-reverse-name ...)
-                    (map (lambda (given-name default-name)
-                           (if (syntax->datum given-name)
-                               given-name
-                               default-name))
-                         (syntax->list #'(name ...))
-                         (syntax->list #'(fun.name ...)))])
-       (syntax/loc stx
-         (let-values ([(dispatch _)
-                       (dispatch-rules
-                        [pat #:method method fun] ...
-                        [else else-fun])]
-                      [(reverse-uri)
-                       (dispatch-url
-                        [pat fun-reverse-name] ...)]
-                      [(roles)
-                       (dispatch-case
-                        [pat #:method method (const '(role ...))] ...
-                        [else (const null)])])
-           (values dispatch reverse-uri roles))))]
-
-    [(_
-      [pat
-       (~alt (~optional (~seq #:method method) #:defaults ([method #'"get"]))
-             (~optional (~seq #:roles (role:id ...)) #:defaults ([(role 1) null]))
-             (~optional (~seq #:name name) #:defaults ([name #'#f]))) ...
-       fun] ...)
-     (syntax/loc stx
-       (dispatch-rules+roles
-        [pat #:method method #:roles (role ...) #:name name fun] ...
-        [else default-else]))]))
-
-
-(module+ test
-  (require koyo/testing)
-
-  (run-tests
-   (test-suite
-    "auth"
-
-    (test-suite
-     "dispatch-rules+roles"
-
-     (test-case "generates a function from requests to lists of roles"
-       (define-values (dispatch reverse-uri req-roles)
-         (dispatch-rules+roles
-          [("") (const "home")]
-          [("lounge") #:roles (user) (const "lounge")]
-          [("admin") #:roles (admin) (const "admin")]))
-
-       (check-equal? (req-roles (make-test-request)) '())
-       (check-equal? (req-roles (make-test-request #:path "/invalid")) '())
-       (check-equal? (req-roles (make-test-request #:path "/lounge")) '(user))
-       (check-equal? (req-roles (make-test-request #:path "/lounge" #:method "POST")) '())
-       (check-equal? (req-roles (make-test-request #:path "/admin")) '(admin)))
-
-     (test-case "generates a reverse-uri function based upon symbols"
-       (define (home-page req)
-         'home)
-
-       (define ((order-page orders) req id)
-         'order)
-
-       (define ((admin:edit-order-page orders) req id)
-         'edit-order)
-
-       (define-values (dispatch reverse-uri req-roles)
-         (dispatch-rules+roles
-          [("") home-page]
-          [("orders" (integer-arg)) (order-page 'order-manager)]
-          [("admin" "orders" (integer-arg))
-           #:name 'edit-order-page
-           (admin:edit-order-page 'order-manager)]))
-
-       (check-equal? (reverse-uri 'home-page) "/")
-       (check-equal? (reverse-uri 'order-page 1) "/orders/1")
-       (check-equal? (reverse-uri 'edit-order-page 1) "/admin/orders/1"))))))
