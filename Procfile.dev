@@ -1,2 +1,2 @@
 scss: sass --watch --style=compressed resources/css/screen.scss static/css/screen.css
-web: bash bin/runserver
+web: raco koyo serve

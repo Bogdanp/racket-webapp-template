@@ -62,3 +62,13 @@
 (define-option company-address "")
 (define-option support-name "Bot Botterson")
 (define-option support-email "support@app-name-here.com")
+
+(provide common-mail-variables)
+(define common-mail-variables
+
+  (hasheq 'product_url     (make-application-url)
+          'product_name    product-name
+          'company_name    company-name
+          'company_address company-address
+          'sender_name     support-name
+          'support_email   support-email))
